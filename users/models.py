@@ -7,6 +7,9 @@ class Profile(models.Model):
     class Meta:
         verbose_name = "Perfil de usuario"
         verbose_name_plural = "Perfiles de usuario"
+        indexes = [
+            models.Index(fields=["role"]),
+        ]
 
     class Role(models.TextChoices):
         SALES = "S", "Vendedor"
