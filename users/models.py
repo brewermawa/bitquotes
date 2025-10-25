@@ -1,6 +1,10 @@
 from django.db import models
-from django.contrib.auth.models import User
+from django.contrib.auth.models import AbstractUser
 from django.core.validators import RegexValidator
+
+class CustomUser(AbstractUser):
+    def __str__(self):
+        return f"{self.first_name} {self.last_name}" or self.username
 
 
 class Profile(models.Model):
@@ -22,7 +26,7 @@ class Profile(models.Model):
         message="El número de teléfono debe tener exactamente 10 dígitos numéricos."
     )
 
-    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="profile")
+    user = models.OneToOneField(CustomUser, on_delete=models.CASCADE, related_name="profile")
     role = models.CharField("rol", max_length=1, choices=Role, default=Role.SALES)
     phone = models.CharField("Teléfono oficina", max_length=10, validators=[phone_validator])
     cel_phone = models.CharField("Teléfono celular", max_length=10, validators=[phone_validator])

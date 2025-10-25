@@ -1,6 +1,6 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
-from django.contrib.auth.models import User
+from .models import CustomUser
 
 from .models import Profile
 
@@ -10,8 +10,8 @@ class ProfileInline(admin.TabularInline):
     can_delete = False
     verbose_name = "Perfil"
 
-
-class UserAdmin(BaseUserAdmin):
+@admin.register(CustomUser)
+class CustomUserAdmin(BaseUserAdmin):
     @admin.display(description="Nombre")
     def name(self, obj):
         return obj.profile
@@ -41,7 +41,3 @@ class UserAdmin(BaseUserAdmin):
     list_display = ["name", "e_mail", "phone", "cel_phone", "role", "admin"]
 
     inlines = [ProfileInline]
-
-
-admin.site.unregister(User)
-admin.site.register(User, UserAdmin)
