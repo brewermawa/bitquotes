@@ -7,8 +7,9 @@ from .models import Profile
 
 class ProfileInline(admin.TabularInline):
     model = Profile
-    can_delete = False
     verbose_name = "Perfil"
+    verbose_name_plural = "Perfiles"
+    can_delete = False
 
 @admin.register(CustomUser)
 class CustomUserAdmin(BaseUserAdmin):

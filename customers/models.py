@@ -19,13 +19,17 @@ class Customer(models.Model):
 
     name = models.CharField("Cliente", max_length=100, unique=True)
     slug = models.SlugField(max_length=100, unique=True)
-    rfc = models.CharField(max_length=13, validators=[rfc_validator])
+    rfc = models.CharField(max_length=13, validators=[rfc_validator], unique=True)
     assigned_to = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Vendedor", related_name="assigned_customers")
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
     created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, related_name="created_customers")
     updated_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, related_name="updated_customers")
 
+    def clean(self):
+        super().clean()
+        self.rfc =self.rfc.upper()
+    
     def formatted_rfc(self):
         if self.rfc[3].isdigit():
             return f"{self.rfc[:3]}-{self.rfc[3:9]}-{self.rfc[9:]}"
