@@ -30,7 +30,6 @@ class CustomerAdmin(admin.ModelAdmin):
     def save_model(self, request, obj, form, change):
         if not change:
             obj.created_by = request.user
-            print("NOT CHANGE")
 
         obj.updated_by = request.user
 

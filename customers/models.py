@@ -18,7 +18,7 @@ class Customer(models.Model):
     )
 
     name = models.CharField("Cliente", max_length=100, unique=True)
-    slug = models.CharField(max_length=100)
+    slug = models.SlugField(max_length=100, unique=True)
     rfc = models.CharField(max_length=13, validators=[rfc_validator])
     assigned_to = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Vendedor", related_name="assigned_customers")
     created = models.DateTimeField(auto_now_add=True)
@@ -34,6 +34,8 @@ class Customer(models.Model):
     
     def __str__(self):
         return self.name
+    
+    #TODO: Customer get_absolute_url
     
 
 class Contact(models.Model):
@@ -63,6 +65,11 @@ class Contact(models.Model):
     updated = models.DateTimeField(auto_now=True)
     created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, related_name="created_contacts")
     updated_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, related_name="updated_contacts")
+
+    def __str__(self):
+        return f"{self.first_name} - {self.last_name}"
+    
+    #TODO: Contact get_absolute_url
 
     
 

@@ -27,7 +27,7 @@ class Profile(models.Model):
     )
 
     user = models.OneToOneField(CustomUser, on_delete=models.CASCADE, related_name="profile")
-    role = models.CharField("rol", max_length=1, choices=Role, default=Role.SALES)
+    role = models.CharField("rol", max_length=1, choices=Role.choices, default=Role.SALES)
     phone = models.CharField("Teléfono oficina", max_length=10, validators=[phone_validator])
     cel_phone = models.CharField("Teléfono celular", max_length=10, validators=[phone_validator])
     position = models.CharField("Puesto", max_length=30)
