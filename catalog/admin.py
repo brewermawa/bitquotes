@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Category, Product, RelatedProduct
+from .models import Category, Product, RelatedProduct, ProductDocument
 
 
 class RelatedProductInline(admin.TabularInline):
@@ -18,6 +18,13 @@ class RelatedProductInline(admin.TabularInline):
                 kwargs["queryset"] = Product.objects.exclude(pk=obj_id)
             
         return super().formfield_for_foreignkey(db_field, request, **kwargs)
+    
+
+class ProductDocumentInline(admin.TabularInline):
+    model = ProductDocument
+    verbose_name = "Documento de producto"
+    extra = 0
+    exclude = ["created_by", "updated_by"]
 
 
 @admin.register(Category)
@@ -44,7 +51,7 @@ class ProductAdmin(admin.ModelAdmin):
     search_fields = ["sku", "name"]
     prepopulated_fields = {"slug": ("name",)}
     readonly_fields = ["created_by", "updated_by"]
-    inlines = [RelatedProductInline]
+    inlines = [RelatedProductInline, ProductDocumentInline]
 
     def save_model(self, request, obj, form, change):
         if not change:
