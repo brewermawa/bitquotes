@@ -14,12 +14,12 @@ class Category(models.Model):
         verbose_name_plural = "Categorías"
         indexes = [models.Index(fields=["name"]),]
 
-    name = models.CharField("Categoría", max_length=30, unique=True)
+    name = models.CharField(max_length=30, unique=True, verbose_name="Categoría")
     is_active = models.BooleanField(default=True)
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
-    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, related_name="created_categories", verbose_name="Creado por")
-    updated_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, related_name="updated_categories", verbose_name="Modificado por")
+    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, null=True, related_name="created_categories", verbose_name="Creado por")
+    updated_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, null=True, related_name="updated_categories", verbose_name="Modificado por")
 
     def save(self, *args, **kwargs):
         if self.pk: #only runs when editing a category, not when saving a new one
@@ -53,19 +53,19 @@ class Product(models.Model):
         ACCESORIO = "ACC", "Accesorio"
         REFACCIONES = "REF", "Refacciones"
 
-    sku = models.CharField("Número de parte", max_length=10, unique=True)
-    name = models.CharField("Producto", max_length=100)
+    sku = models.CharField(max_length=10, unique=True, verbose_name="Número de parte")
+    name = models.CharField(max_length=100, verbose_name="Producto")
     slug = models.SlugField(max_length=100, unique=True)
-    description = models.TextField("Descripción", blank=True)
-    price = models.DecimalField("Precio", max_digits=12, decimal_places=2)
-    product_type = models.CharField("Tipo de producto", max_length=3, choices=ProductType.choices, default=ProductType.CONSUMIBLE)
+    description = models.TextField(blank=True, verbose_name="Descripción")
+    price = models.DecimalField(max_digits=12, decimal_places=2, verbose_name="Precio")
+    product_type = models.CharField(max_length=3, choices=ProductType.choices, default=ProductType.CONSUMIBLE, verbose_name="Tipo de producto")
     category = models.ForeignKey(Category, on_delete=models.PROTECT, related_name="products")
     related_product = models.ManyToManyField("self", symmetrical=False, through="RelatedProduct", related_name="related_products")
     is_active = models.BooleanField(default=True)
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
-    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, related_name="created_products", verbose_name="Creado por")
-    updated_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, related_name="updated_products", verbose_name="Modificado por")
+    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, null=True, related_name="created_products", verbose_name="Creado por")
+    updated_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, null=True, related_name="updated_products", verbose_name="Modificado por")
 
     def clean(self):
         self.sku = self.sku.strip().upper()
@@ -73,8 +73,6 @@ class Product(models.Model):
 
         if self.description:
             self.description = self.description.strip()
-
-        print("---", self.price)
 
         if self.price is not None and self.price <= 0:
             raise ValidationError({"price": "El precio debe ser mayor a 0."})
@@ -118,7 +116,7 @@ class ProductDocument(models.Model):
         GARANTIA = "GAR", "Garantía"
 
     product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name="documents", verbose_name="Producto")
-    name = models.CharField("Documento", max_length=100)
+    name = models.CharField(max_length=100, verbose_name="Documento")
     document_type = models.CharField("Tipo de documento", max_length=3, choices=DocumentType.choices, default=DocumentType.FICHA_TECNICA)
     document = models.FileField(
         upload_to=document_upload_path,
@@ -128,8 +126,8 @@ class ProductDocument(models.Model):
     is_active = models.BooleanField(default=True, verbose_name="Activo")
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
-    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, related_name="created_product_documents", verbose_name="Creado por")
-    updated_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, related_name="updated_product_documents", verbose_name="Modificado por")
+    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, null=True, related_name="created_product_documents", verbose_name="Creado por")
+    updated_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, null=True, related_name="updated_product_documents", verbose_name="Modificado por")
 
     def clean(self):
         self.name = self.name.strip()

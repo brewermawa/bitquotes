@@ -2,7 +2,6 @@ from django.db import models
 from django.conf import settings
 
 from customers.models import Customer, Contact
-from users.models import CustomUser
 
 
 class Quote(models.Model):
@@ -39,12 +38,12 @@ class Quote(models.Model):
     # izquierda. Va a tomar el número del pk del modelo. ej si pk = 16, el consecutivo
     # será '00016' para unb identificador completo: BIT-MG-251028-00016
 
-    quote_id = models.CharField("Cotización", max_length=19, unique=True)
-    customer = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, verbose_name="Cliente", related_name="customer_uotes")
-    contact = models.ForeignKey(Contact, on_delete=models.PROTECT, verbose_name="Contacto", related_name="contact_quotes")
-    user = models.ForeignKey(CustomUser, on_delete=models.PROTECT, verbose_name="Usuario", related_name="user_quotes")
-    status = models.CharField("Estatus", max_length=3, choices=Status.choices, default=Status.DRAFT)
-    payment_terms = models.CharField("términos de pago", max_length=3, choices=PaymentTerms.choices, default=PaymentTerms.CASH)
+    quote_id = models.CharField(max_length=19, unique=True, verbose_name="Cotización")
+    customer = models.ForeignKey(Customer, on_delete=models.PROTECT, verbose_name="Cliente", related_name="customer_quotes")
+    contact = models.ForeignKey(Contact, on_delete=models.PROTECT, related_name="contact_quotes", verbose_name="Contacto")
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name="user_quotes", verbose_name="Usuario",)
+    status = models.CharField(max_length=3, choices=Status.choices, default=Status.DRAFT, verbose_name="Estatus")
+    payment_terms = models.CharField(max_length=3, choices=PaymentTerms.choices, default=PaymentTerms.CASH, verbose_name="Términos de pago")
     
     # El campo valid_until debe ser el último día del mes cuando se hace la cotización. Si el último día del mes está
     # a menos de 5 días de la fecha de la cotización, valid_until será el día 15 del siguiente mes
@@ -56,13 +55,13 @@ class Quote(models.Model):
     is_active = models.BooleanField(default=True)
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
-    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, related_name="created_quotes", verbose_name="Creado por")
-    updated_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, related_name="updated_quotes", verbose_name="Modificado por")
+    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, null=True, related_name="created_quotes", verbose_name="Creado por")
+    updated_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, null=True, related_name="updated_quotes", verbose_name="Modificado por")
 
     def clean(self):
         return super().clean()
 
     def __str__(self):
-        return super().__str__()
+        return self.quote_id
 
     
