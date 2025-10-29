@@ -134,6 +134,5 @@ class ProductDocument(models.Model):
     def clean(self):
         self.name = self.name.strip()
 
-
     def __str__(self):
         return f"{self.product.sku} - {self.name}"

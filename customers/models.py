@@ -17,14 +17,14 @@ class Customer(models.Model):
         message="El RFC no tiene un formato válido"
     )
 
-    name = models.CharField("Cliente", max_length=100, unique=True)
+    name = models.CharField(max_length=100, unique=True, verbose_name="Cliente")
     slug = models.SlugField(max_length=100, unique=True)
     rfc = models.CharField(max_length=13, validators=[rfc_validator], unique=True)
     assigned_to = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Vendedor", related_name="assigned_customers")
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
-    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, related_name="created_customers")
-    updated_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, related_name="updated_customers")
+    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, null=True, related_name="created_customers")
+    updated_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, null=True, related_name="updated_customers")
 
     def clean(self):
         super().clean()
@@ -40,7 +40,7 @@ class Customer(models.Model):
         return self.name
     
     #TODO: Customer get_absolute_url
-    
+
 
 class Contact(models.Model):
     class Meta:
@@ -57,20 +57,28 @@ class Contact(models.Model):
         message="El número de teléfono debe tener exactamente 10 dígitos numéricos."
     )
 
-    first_name = models.CharField("Nombre", max_length=20)
-    last_name = models.CharField("Apellido", max_length=20)
-    phone = models.CharField("Teléfono oficina", max_length=10, validators=[phone_validator])
-    phone_extension = models.CharField("Extensión", max_length=6, null=True, blank=True)
-    cel_phone = models.CharField("Teléfono celular", max_length=10, validators=[phone_validator])
+    extension_validator = RegexValidator(
+        regex=r"^(?!0+$)(?:\d{1,5})?$",
+        message="La extensión debe ser de 1 a 5 dígitos. No puede ser 0's"
+    )
+
+    first_name = models.CharField(max_length=30, verbose_name="Nombre")
+    last_name = models.CharField(max_length=30, verbose_name="Apellido")
+    phone = models.CharField(max_length=10, validators=[phone_validator], verbose_name="Teléfono oficina")
+    phone_extension = models.CharField(max_length=5, validators=[extension_validator], null=True, blank=True, verbose_name="Extensión")
+    cel_phone = models.CharField(max_length=10, validators=[phone_validator], verbose_name="Teléfono celular")
     email = models.EmailField(unique=True)
     customer = models.ForeignKey(Customer, on_delete=models.CASCADE, related_name="contacts")
-    is_active = models.BooleanField("Activo", default=True)
+    is_active = models.BooleanField(default=True, verbose_name="Activo")
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
-    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, related_name="created_contacts")
-    updated_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, related_name="updated_contacts")
+    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, null=True, related_name="created_contacts")
+    updated_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, null=True, related_name="updated_contacts")
 
     def __str__(self):
+        return f"{self.first_name} - {self.last_name}"
+    
+    def full_name(self):
         return f"{self.first_name} - {self.last_name}"
     
     #TODO: Contact get_absolute_url

@@ -1,6 +1,7 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.core.validators import RegexValidator
+from django.conf import settings
 
 class CustomUser(AbstractUser):
     def __str__(self):
@@ -26,11 +27,11 @@ class Profile(models.Model):
         message="El número de teléfono debe tener exactamente 10 dígitos numéricos."
     )
 
-    user = models.OneToOneField(CustomUser, on_delete=models.CASCADE, related_name="profile", verbose_name="Usuario")
-    role = models.CharField("rol", max_length=1, choices=Role.choices, default=Role.SALES)
-    phone = models.CharField("Teléfono oficina", max_length=10, validators=[phone_validator])
-    cel_phone = models.CharField("Teléfono celular", max_length=10, validators=[phone_validator])
-    position = models.CharField("Puesto", max_length=30)
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name="profile", verbose_name="Usuario")
+    role = models.CharField(max_length=1, choices=Role.choices, default=Role.SALES, verbose_name="Rol")
+    phone = models.CharField(max_length=10, validators=[phone_validator], verbose_name="Teléfono oficina")
+    cel_phone = models.CharField(max_length=10, validators=[phone_validator], verbose_name="Teléfono celular")
+    position = models.CharField(max_length=30, verbose_name="Puesto")
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
 
