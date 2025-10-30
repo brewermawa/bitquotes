@@ -76,10 +76,10 @@ class Contact(models.Model):
     updated_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, null=True, related_name="updated_contacts")
 
     def __str__(self):
-        return f"{self.first_name} - {self.last_name}"
+        return f"{self.first_name} {self.last_name}"
     
     def full_name(self):
-        return f"{self.first_name} - {self.last_name}"
+        return f"{self.first_name} {self.last_name}"
     
     #TODO: Contact get_absolute_url
 
