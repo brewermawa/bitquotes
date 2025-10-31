@@ -1,12 +1,13 @@
 from django.db import models
 from django.conf import settings
-from django.utils import timezone
 from datetime import date
 from calendar import monthrange
 from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator
+from decimal import Decimal, ROUND_HALF_UP
 
 from customers.models import Customer, Contact
+from catalog.models import Product
 
 
 class Quote(models.Model):
@@ -120,7 +121,7 @@ class Quote(models.Model):
 
 class QuoteSection(models.Model):
     name = models.CharField(max_length=50)
-    quote = models.ForeignKey(Quote, on_delete=models.CASCADE, related_name="sections")
+    quote = models.ForeignKey(Quote, on_delete=models.CASCADE, related_name="quote_sections")
     sub_total = models.DecimalField(max_digits=12, decimal_places=2, default=0, validators=[MinValueValidator(0)], verbose_name="Subtotal")
 
     class Meta:
@@ -133,3 +134,58 @@ class QuoteSection(models.Model):
 
     def __str__(self):
         return f"{self.quote} - {self.name}"
+    
+
+class QuoteLine(models.Model):
+    class Discount(models.IntegerChoices):
+        DISC0 = 0, "0%"
+        DISC3 = 3, "3%"
+        DISC5 = 5, "5%"
+        DISC7 = 7, "7%"
+        DISC10 = 10, "10%"
+        DISC15 = 15, "15%"
+        DISC50 = 50, "50%"
+        DISC100 = 100, "100%"
+
+    quote = models.ForeignKey(Quote, on_delete=models.CASCADE, related_name="quote_lines")
+    section = models.ForeignKey(QuoteSection, on_delete=models.SET_NULL, blank=True, null=True, related_name="section_lines")
+    product = models.ForeignKey(Product, on_delete=models.PROTECT, related_name="product_quoted_lines")
+    description = models.CharField("Descripción", max_length=200, blank=True)
+    quantity = models.PositiveIntegerField(default=1, validators=[MinValueValidator(1)])
+    unit_price = models.DecimalField(max_digits=12, validators=[MinValueValidator(0)], decimal_places=2, verbose_name="Precio unitario")
+    discount = models.PositiveSmallIntegerField(choices=Discount.choices, default=Discount.DISC0, blank=False, null=False, verbose_name="Descuento")
+    delivery_time = models.PositiveSmallIntegerField(default=0, validators=[MinValueValidator(0)], verbose_name="Tiempo de entrega", help_text="Tiempo en días hábiles")
+
+    class Meta:
+        verbose_name = "Línea de cotización"
+        verbose_name_plural = "Líneas de cotización"
+        ordering = ["section_id", "id"]
+        indexes = [
+            models.Index(fields=["quote"]),
+            models.Index(fields=["section"]),
+            models.Index(fields=["product"]),
+            models.Index(fields=["discount"]),
+        ]
+
+    def __str__(self):
+        return f"{self.product} x {self.quantity} ({self.discount}%)"
+
+    # Snapshot básico
+    def save(self, *args, **kwargs):
+        if not self.description:
+            self.description = getattr(self.product, "name", str(self.product))[:200]
+        super().save(*args, **kwargs)
+
+
+    @property
+    def gross_total(self) -> Decimal:
+        return (Decimal(self.quantity) * (self.unit_price or Decimal("0.00"))).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+    
+    @property
+    def discount_value(self) -> Decimal:
+        pct = Decimal(self.discount or 0) / Decimal("100")
+        return (self.gross_total * pct).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+
+    @property
+    def net_total(self) -> Decimal:
+        return (self.gross_total - self.discount_value).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
