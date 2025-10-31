@@ -57,6 +57,15 @@ class Quote(models.Model):
     updated = models.DateTimeField(auto_now=True)
     created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, null=True, related_name="created_quotes", verbose_name="Creado por")
     updated_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, null=True, related_name="updated_quotes", verbose_name="Modificado por")
+    approved_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, null=True, related_name="approved_quotes", verbose_name="Aprobada por")
+    approved_at = models.DateTimeField(blank=True, null=True, verbose_name="Fecha de aprobación")
+    sent_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, null=True, related_name="sent_quotes", verbose_name="Enviada por")
+    sent_at = models.DateTimeField(blank=True, null=True, verbose_name="Fecha de envío")
+    won_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, null=True, related_name="won_quotes", verbose_name="Ganada por")
+    won_at = models.DateTimeField(blank=True, null=True, verbose_name="Fecha de cierre")
+    lost_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, null=True, related_name="lost_quotes", verbose_name="Perdida por")
+    lost_at = models.DateTimeField(blank=True, null=True, verbose_name="Fecha de perdida")
+    lost_reason = models.CharField(max_length=100, blank=True, null=True, verbose_name="Reazón de pérdida")
 
     class Meta:
         ordering = ["-created"]
@@ -107,3 +116,20 @@ class Quote(models.Model):
             self.__set_quote_id()
        
         return super().save(*args, **kwargs)
+    
+
+class QuoteSection(models.Model):
+    name = models.CharField(max_length=50)
+    quote = models.ForeignKey(Quote, on_delete=models.CASCADE, related_name="sections")
+    sub_total = models.DecimalField(max_digits=12, decimal_places=2, default=0, validators=[MinValueValidator(0)], verbose_name="Subtotal")
+
+    class Meta:
+        verbose_name = "Sección de cotización"
+        verbose_name_plural = "Secciones de cotización"
+        indexes = [
+            models.Index(fields=["name"])
+        ]
+        constraints = [models.UniqueConstraint(fields=["name", "quote"], name="unique_section_per_quote")]
+
+    def __str__(self):
+        return f"{self.quote} - {self.name}"
