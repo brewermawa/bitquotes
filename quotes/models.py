@@ -42,7 +42,7 @@ class Quote(models.Model):
     quote_id = models.CharField(max_length=19, unique=True, verbose_name="Cotización", blank=True, null=True)
     customer = models.ForeignKey(Customer, on_delete=models.PROTECT, verbose_name="Cliente", related_name="customer_quotes")
     contact = models.ForeignKey(Contact, on_delete=models.PROTECT, related_name="contact_quotes", verbose_name="Contacto")
-    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name="user_quotes", verbose_name="Usuario",)
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name="user_quotes", verbose_name="Usuario")
     status = models.CharField(max_length=3, choices=Status.choices, default=Status.DRAFT, verbose_name="Estatus")
     payment_terms = models.CharField(max_length=3, choices=PaymentTerms.choices, default=PaymentTerms.CASH, verbose_name="Términos de pago")
     
@@ -148,10 +148,10 @@ class QuoteLine(models.Model):
         DISC100 = 100, "100%"
 
     quote = models.ForeignKey(Quote, on_delete=models.CASCADE, related_name="quote_lines")
-    section = models.ForeignKey(QuoteSection, on_delete=models.SET_NULL, blank=True, null=True, related_name="section_lines")
-    product = models.ForeignKey(Product, on_delete=models.PROTECT, related_name="product_quoted_lines")
+    section = models.ForeignKey(QuoteSection, on_delete=models.SET_NULL, blank=True, null=True, related_name="section_lines", verbose_name="Sección")
+    product = models.ForeignKey(Product, on_delete=models.PROTECT, related_name="product_quoted_lines", verbose_name="Número de parte")
     description = models.CharField("Descripción", max_length=200, blank=True)
-    quantity = models.PositiveIntegerField(default=1, validators=[MinValueValidator(1)])
+    quantity = models.PositiveIntegerField(default=1, validators=[MinValueValidator(1)], verbose_name="Cantidad")
     unit_price = models.DecimalField(max_digits=12, validators=[MinValueValidator(0)], decimal_places=2, verbose_name="Precio unitario")
     discount = models.PositiveSmallIntegerField(choices=Discount.choices, default=Discount.DISC0, blank=False, null=False, verbose_name="Descuento")
     delivery_time = models.PositiveSmallIntegerField(default=0, validators=[MinValueValidator(0)], verbose_name="Tiempo de entrega", help_text="Tiempo en días hábiles")
@@ -189,3 +189,23 @@ class QuoteLine(models.Model):
     @property
     def net_total(self) -> Decimal:
         return (self.gross_total - self.discount_value).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+
+
+class QuoteComment(models.Model):
+    user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name="quote_comments", verbose_name="Usuario")
+    quote = models.ForeignKey(Quote, on_delete=models.CASCADE, related_name="comments")
+    comment = models.TextField(verbose_name="Comentario")
+    created = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        verbose_name = "Comentario"
+        verbose_name_plural = "Comentarios"
+        ordering = ["-created"]
+        indexes = [
+            models.Index(fields=["user"]),
+            models.Index(fields=["quote"]),
+            models.Index(fields=["quote", "created"])
+        ]
+
+    def __str__(self):
+        return f"Comentario de {self.user} en {self.quote}"

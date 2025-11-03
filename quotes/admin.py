@@ -1,13 +1,19 @@
 from django.contrib import admin
 
 
-from .models import Quote
+from .models import Quote, QuoteLine, QuoteComment
+
+class QuoteLineInline(admin.StackedInline):
+    model = QuoteLine
+    extra = 0
+    readonly_fields = ["description", "unit_price"]
 
 @admin.register(Quote)
 class QuoteAdmin(admin.ModelAdmin):
     list_display = ["quote_id", "customer", "contact", "user", "status", "total"]
     list_filter = ["customer", "user", "status", "is_active"]
     date_hierarchy = "created"
+    inlines = [QuoteLineInline]
     fieldsets = (
         (None, {
             "fields": (
@@ -31,4 +37,5 @@ class QuoteAdmin(admin.ModelAdmin):
         "quote_id", "valid_until", "sub_total", "discount_total", "tax",
         "total", "created", "updated", "created_by", "updated_by"
     ]
+
 
