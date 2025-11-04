@@ -6,14 +6,20 @@ from .models import Quote, QuoteLine, QuoteComment
 class QuoteLineInline(admin.StackedInline):
     model = QuoteLine
     extra = 0
-    readonly_fields = ["description", "unit_price"]
+    readonly_fields = ["description", "unit_price", "section"]
+
+class QuoteCommentInLine(admin.TabularInline):
+    model = QuoteComment
+    readonly_fields = ["user", "comment"]
+    extra = 0
+    can_delete = False
 
 @admin.register(Quote)
 class QuoteAdmin(admin.ModelAdmin):
     list_display = ["quote_id", "customer", "contact", "user", "status", "total"]
     list_filter = ["customer", "user", "status", "is_active"]
     date_hierarchy = "created"
-    inlines = [QuoteLineInline]
+    inlines = [QuoteLineInline, QuoteCommentInLine]
     fieldsets = (
         (None, {
             "fields": (
