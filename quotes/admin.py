@@ -6,42 +6,66 @@ from .models import Quote, QuoteLine, QuoteComment
 class QuoteLineInline(admin.StackedInline):
     model = QuoteLine
     extra = 0
-    readonly_fields = ["description", "unit_price", "section"]
+    readonly_fields = ["product", "description", "quantity", "unit_price", "section", "discount", "delivery_time"]
+    can_delete = False
+    show_change_link = False
 
-class QuoteCommentInLine(admin.TabularInline):
+    def has_add_permission(self, request, obj=None): return False
+    def has_change_permission(self, request, obj=None): return False
+
+
+class QuoteCommentInline(admin.TabularInline):
     model = QuoteComment
-    readonly_fields = ["user", "comment"]
+    readonly_fields = ["user", "comment", "created"]
     extra = 0
     can_delete = False
+    show_change_link = False
+    
+    def has_add_permission(self, request, obj=None): return False
+    def has_change_permission(self, request, obj=None): return False
+
 
 @admin.register(Quote)
 class QuoteAdmin(admin.ModelAdmin):
-    list_display = ["quote_id", "customer", "contact", "user", "status", "total"]
+    list_display = ["quote_id", "customer", "contact", "user", "status", "total", "created"]
+    list_display_links = ["quote_id"]
+    search_fields = ["quote_id", "customer__name", "contact__first_name", "contact__last_name", "user__first_name", "user__last_name"]
     list_filter = ["customer", "user", "status", "is_active"]
+    list_select_related = ["customer", "contact", "user"]
     date_hierarchy = "created"
-    inlines = [QuoteLineInline, QuoteCommentInLine]
+    ordering = ["-created"]
+    empty_value_display = "-"
+    readonly_fields = [
+        "quote_id", "user", "status", "payment_terms", "valid_until", "is_active", "customer", "contact",
+        "sub_total", "discount_total", "tax", "total", "approved_by", "approved_at", "sent_by", "sent_at",
+        "won_by", "won_at", "lost_by", "lost_at", "lost_reason", "created", "updated", "created_by",
+        "updated_by",
+    ]
+    
     fieldsets = (
         (None, {
             "fields": (
-                "quote_id", "user", "status", "payment_terms", "valid_until",
-                "is_active"
+                "quote_id", "user", "status", "payment_terms", "valid_until", "is_active"
             )
         }),
-        ('Información cliente', {
-            "fields": ("customer", "contact")
+        ('Información cliente', {"fields": ("customer", "contact")}),
+        ('Totales', {"fields": ("sub_total", "discount_total", "tax", "total")}),
+        ("Workflow", {
+            "classes": ("collapse",),
+            "fields": ("approved_by", "approved_at", "sent_by", "sent_at", "won_by", "won_at", "lost_by", "lost_at", "lost_reason"),
         }),
-        ('Totales', {
-            "fields": ("sub_total", "discount_total", "tax", "total")
-        }),
-        ('Fecha y usuario de creación', {
-            'classes': ('collapse',),
-            "fields": ("created", "updated", "created_by", "updated_by")
+        ("Auditoría", {
+            "classes": ("collapse",),
+            "fields": ("created", "updated", "created_by", "updated_by"),
         }),
     )
 
-    readonly_fields = [
-        "quote_id", "valid_until", "sub_total", "discount_total", "tax",
-        "total", "created", "updated", "created_by", "updated_by"
-    ]
+    inlines = [QuoteLineInline, QuoteCommentInline]
+
+    def has_add_permission(self, request): return False
+    def has_change_permission(self, request, obj=None): return False
+    def has_delete_permission(self, request, obj=None): return False
+
+    
 
 

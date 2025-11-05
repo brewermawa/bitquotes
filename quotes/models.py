@@ -39,7 +39,7 @@ class Quote(models.Model):
     # izquierda. Va a tomar el número del pk del modelo. ej si pk = 16, el consecutivo
     # será '00016' para unb identificador completo: BIT-MG-251028-00016
 
-    quote_id = models.CharField(max_length=19, unique=True, verbose_name="Cotización", blank=True, null=True)
+    quote_id = models.CharField(max_length=19, unique=True, blank=True, null=True, verbose_name="Cotización")
     customer = models.ForeignKey(Customer, on_delete=models.PROTECT, verbose_name="Cliente", related_name="customer_quotes")
     contact = models.ForeignKey(Contact, on_delete=models.PROTECT, related_name="contact_quotes", verbose_name="Contacto")
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name="user_quotes", verbose_name="Usuario")
@@ -65,13 +65,15 @@ class Quote(models.Model):
     won_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, null=True, related_name="won_quotes", verbose_name="Ganada por")
     won_at = models.DateTimeField(blank=True, null=True, verbose_name="Fecha de cierre")
     lost_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, null=True, related_name="lost_quotes", verbose_name="Perdida por")
-    lost_at = models.DateTimeField(blank=True, null=True, verbose_name="Fecha de perdida")
-    lost_reason = models.CharField(max_length=100, blank=True, null=True, verbose_name="Reazón de pérdida")
+    lost_at = models.DateTimeField(blank=True, null=True, verbose_name="Fecha de pérdida")
+    lost_reason = models.CharField(max_length=100, blank=True, null=True, verbose_name="Razón de pérdida")
 
     class Meta:
         ordering = ["-created"]
         indexes = [
-            models.Index(fields=["status", "created"])
+            models.Index(fields=["status", "created"]),
+            models.Index(fields=["user", "created"]),
+            models.Index(fields=["is_active"]),
         ]
         verbose_name = "Cotización"
         verbose_name_plural = "Cotizaciones"
@@ -81,10 +83,17 @@ class Quote(models.Model):
         return self.quote_id
 
     def clean(self):
-        if self.contact.customer != self.customer:
-            raise ValidationError(message="El contacto seleccionado no es parte del cliente seleccionado")
+        #Validar que el contacto sea parte del cliente seleccionado.
+        if self.customer and self.contact:
+            if self.contact.customer_id != self.customer_id:
+                raise ValidationError({"contact": "El contacto no es parte del cliente seleccionado"})
 
-        return super().clean()
+        super().clean()
+    
+    def save(self, *args, **kwargs):
+        self.full_clean()
+
+        return super().save(*args, **kwargs)
     
     def __set_valid_until(self):
         #today = timezone.localdate()
@@ -120,7 +129,7 @@ class Quote(models.Model):
     
 
 class QuoteSection(models.Model):
-    name = models.CharField(max_length=50)
+    name = models.CharField(max_length=50, verbose_name="Sección")
     quote = models.ForeignKey(Quote, on_delete=models.CASCADE, related_name="quote_sections")
     sub_total = models.DecimalField(max_digits=12, decimal_places=2, default=0, validators=[MinValueValidator(0)], verbose_name="Subtotal")
 
@@ -150,7 +159,7 @@ class QuoteLine(models.Model):
     quote = models.ForeignKey(Quote, on_delete=models.CASCADE, related_name="quote_lines")
     section = models.ForeignKey(QuoteSection, on_delete=models.SET_NULL, blank=True, null=True, related_name="section_lines", verbose_name="Sección")
     product = models.ForeignKey(Product, on_delete=models.PROTECT, related_name="product_quoted_lines", verbose_name="Número de parte")
-    description = models.CharField("Descripción", max_length=200, blank=True)
+    description = models.CharField(max_length=200, blank=True, verbose_name="Descripción")
     quantity = models.PositiveIntegerField(default=1, validators=[MinValueValidator(1)], verbose_name="Cantidad")
     unit_price = models.DecimalField(max_digits=12, validators=[MinValueValidator(0)], decimal_places=2, verbose_name="Precio unitario")
     discount = models.PositiveSmallIntegerField(choices=Discount.choices, default=Discount.DISC0, blank=False, null=False, verbose_name="Descuento")
