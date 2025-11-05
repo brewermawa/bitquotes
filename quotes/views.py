@@ -1,3 +1,5 @@
-from django.shortcuts import render
+from django.shortcuts import render, HttpResponse
 
-# Create your views here.
+
+def dashboard(request):
+    return HttpResponse("Vamos a ver si muy verguita para Django Mawita, no te rajes wey, si puedes!")

@@ -25,7 +25,7 @@ admin.site.index_title = "Panel de adminstración BIT-Quotes"
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    #path("", include("quotes.urls")),
+    path("", include("quotes.urls")),
 ]
 
 if settings.DEBUG:
