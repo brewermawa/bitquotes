@@ -31,6 +31,7 @@ ALLOWED_HOSTS = ["localhost", "127.0.0.1"]
 # Application definition
 
 INSTALLED_APPS = [
+    "users.apps.UsersConfig",
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -40,8 +41,6 @@ INSTALLED_APPS = [
     "catalog.apps.CatalogConfig",
     "customers.apps.CustomersConfig",
     "quotes.apps.QuotesConfig",
-    "users.apps.UsersConfig",
-
 ]
 
 MIDDLEWARE = [
@@ -134,3 +133,7 @@ MEDIA_URL = "/media/"
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 AUTH_USER_MODEL = 'users.CustomUser'
+
+LOGIN_URL = "/users/login/"
+LOGIN_REDIRECT_URL = '/'
+LOGOUT_REDIRECT_URL = '/users/login/'

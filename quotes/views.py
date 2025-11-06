@@ -1,5 +1,7 @@
 from django.shortcuts import render, HttpResponse
+from django.contrib.auth.decorators import login_required
 
 
+@login_required
 def dashboard(request):
-    return HttpResponse("Vamos a ver si muy verguita para Django Mawita, no te rajes wey, si puedes!")
+    return render(request, "quotes/dashboard.html")

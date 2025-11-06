@@ -1,0 +1,23 @@
+{% extends 'base.html' %}
+
+{% block title %}- Login{% endblock title %}
+
+{% block content %}
+    <h1>Bienvenido a BIT-Quotes</h1>   
+    {% if form.errors %}
+        <p>
+            Credenciales inválidas.
+            Intenta de nuevo.
+        </p>
+    {% else %}
+        <p>Introduce tus credenciales</p>
+    {% endif %}
+    <form action="" method="post">
+        {% csrf_token %}
+        {{ form.as_p }}
+        <input type="hidden" name="next" value="{{ next }}">
+        <p><input type="submit" value="Entrar"></p>
+    </form> 
+{% endblock content %}
+    
+    

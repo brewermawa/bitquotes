@@ -1,13 +1,42 @@
+{% load static %}
+
 <!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>BI-Tecnología - Cotizaciones{% block title %}{% endblock title %}</title>
-</head>
-<body>
-    <h1>Estamos en base.html general (directorio templates del proyecto)</h1>
-    {% block content %}
-    {% endblock content %}
-</body>
+<html lang="es-MX">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>BI-Tecnología - Cotizaciones {% block title %}{% endblock title %}</title>
+        {% block head_extra %}{% endblock head_extra %}
+    </head>
+    <body>
+        <header>{% block header %}{% endblock header %}</header>
+        <nav>
+            {% if user.is_authenticated %}
+                <p>Bienvenido {{ user.first_name }}</p>
+                <form action="{% url 'users:logout' %}" method="post">
+                    {% csrf_token %}
+                    <button type="submit">Cerrar sesón</button>
+                </form>
+            {% endif %}
+                
+            {% block nav %}{% endblock nav %}
+        </nav>
+        <main>
+            {% if messages %}
+                <div class="messages">
+                    {% for message in messages %}
+                        <div class="message {{ message.tags }}">
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                </div>            
+            {% endif %}
+            {% block content_header %}
+            {% endblock content_header %}
+            {% block content %}
+            {% endblock content %}
+        </main>
+        <footer>Footer (base.html)</footer>
+        {% block scripts %}{% endblock scripts %}
+    </body>
 </html>
