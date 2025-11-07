@@ -1,0 +1,9 @@
+.nav-link.active {
+    color: #4cc2ff !important;
+    text-decoration: none !important;
+}
+
+.navbar-nav .nav-link:hover {
+    color: #4cc2ff !important;
+    text-decoration: underline;
+}

@@ -1,8 +1,11 @@
-{% extends 'base.html' %}
+{% extends "base.html" %}
 
-{% block title %} - Dashboard{% endblock title %}
+{% block nav_active_dashboard %}active{% endblock %}
 
+{% block content_header %}
+  <h1 class="mt-4">Dashboard</h1>
+{% endblock %}
 
 {% block content %}
-    <h2>Estamos en quotes/dashboard.html</h2>
-{% endblock content %}
+  <p>Contenido principal de Dashboard...</p>
+{% endblock %}

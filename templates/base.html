@@ -6,37 +6,124 @@
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
         <title>BI-Tecnología - Cotizaciones {% block title %}{% endblock title %}</title>
+        <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" 
+          rel="stylesheet" 
+          integrity="sha384-QWTKZyjpPEjISv5WaRU9OFeRpok6YctnYmDr5pNlyT2bRjXh0JMhjY6hW+ALEwIH" 
+          crossorigin="anonymous">
+          <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
+          <link rel="stylesheet" href="{% static 'css/base.css' %}">
         {% block head_extra %}{% endblock head_extra %}
     </head>
     <body>
-        <header>{% block header %}{% endblock header %}</header>
-        <nav>
-            {% if user.is_authenticated %}
-                <p>Bienvenido {{ user.first_name }}</p>
-                <form action="{% url 'users:logout' %}" method="post">
-                    {% csrf_token %}
-                    <button type="submit">Cerrar sesón</button>
-                </form>
-            {% endif %}
-                
-            {% block nav %}{% endblock nav %}
-        </nav>
-        <main>
+        {% block header %}
+        <header>
+            <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+                <div class="container">
+                    <a class="navbar-brand d-flex align-items-center gap-2" href="{% url 'quotes:dashboard' %}">
+                        <img src="{% static 'images/logo-bit.png' %}" 
+                            alt="BI-Tecnología" 
+                            style="height: 28px; width: auto;">
+                        <span class="fw-bold">Cotizaciones</span>
+                    </a>
+                    
+                    <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#bitNavbar" aria-controls="bitNavbar" aria-expanded="false" aria-label="Toggle navigation">
+                        <span class="navbar-toggler-icon"></span>
+                    </button>
+                    
+                    <div class="collapse navbar-collapse" id="bitNavbar">
+                        
+                        <ul class="navbar-nav ms-auto mb-2 mb-lg-0 fw-bold">
+                            {% if user.is_authenticated %}
+
+                                <li class="nav-item">
+                                    {% if request.resolver_match.url_name == 'dashboard' %}
+                                        <span class="nav-link active"><i class="bi bi-speedometer2"></i> Dashboard</span>
+                                    {% else %}
+                                        <a class="nav-link {% block nav_active_dashboard %}{% endblock %}" href="{% url 'quotes:dashboard' %}">
+                                            <i class="bi bi-speedometer2"></i> Dashboard
+                                        </a>
+                                    {% endif %}
+                                </li>
+
+                                <!-- Clientes -->
+                                <li class="nav-item">
+                                    {% if request.resolver_match.url_name == 'clientes_list' %}
+                                        <span class="nav-link active"><i class="bi bi-people"></i> Clientes</span>
+                                    {% else %}
+                                        <a class="nav-link {% block nav_active_clientes %}{% endblock %}" href="{% url 'customers:customer_list' %}">
+                                            <i class="bi bi-people"></i> Clientes
+                                        </a>
+                                    {% endif %}
+                                </li>
+
+                                <!-- Cotizaciones -->
+                                <li class="nav-item">
+                                    {% if request.resolver_match.url_name == 'quotes_list' %}
+                                        <span class="nav-link active"><i class="bi bi-file-earmark-text"></i> Cotizaciones</span>
+                                    {% else %}
+                                        <a class="nav-link {% block nav_active_cotizaciones %}{% endblock %}" href="">
+                                            <i class="bi bi-file-earmark-text"></i> Cotizaciones
+                                        </a>
+                                    {% endif %}
+                                </li>
+                            {% endif %}
+                        </ul>
+                        <ul class="navbar-nav ms-auto">
+                            {% if user.is_authenticated %}
+                                <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle d-flex align-items-center gap-2" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                                    <i class="bi bi-person-circle"></i>
+                                    <span>{{ user.get_full_name|default:user.username }}</span>
+                                </a>
+                                <ul class="dropdown-menu dropdown-menu-end">
+                                    <!--<li><hr class="dropdown-divider"></li>-->
+                                    <li>
+                                        <form method="post" action="{% url 'users:logout' %}" class="px-3 py-1">
+                                            {% csrf_token %}
+                                            <button type="submit" class="btn btn-sm btn-outline-danger w-100 d-flex align-items-center justify-content-center gap-2">
+                                                <i class="bi bi-box-arrow-right"></i>
+                                                <span>Cerrar sesión</span>
+                                            </button>
+                                        </form>
+                                    </li>
+                                </ul>
+                                </li>
+                            {% else %}
+                                <li class="nav-item"><a class="btn btn-outline-light btn-sm" href="{% url 'users:login' %}">Iniciar sesión</a></li>
+                            {% endif %}
+                        </ul>
+                    </div>
+                </div>
+            </nav>
+        </header>
+        {% endblock header %}
+
+        <main class="container">
             {% if messages %}
-                <div class="messages">
+                <div class="mt-2">
                     {% for message in messages %}
-                        <div class="message {{ message.tags }}">
+                        <div class="alert alert-{{ message.tags }} alert-dismissible fade show" role="alert">
                             {{ message }}
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Cerrar"></button>
                         </div>
                     {% endfor %}
-                </div>            
+                </div>
             {% endif %}
-            {% block content_header %}
-            {% endblock content_header %}
-            {% block content %}
-            {% endblock content %}
+            {% block content_header %}{% endblock content_header %}
+            {% block content %}{% endblock content %}
         </main>
-        <footer>Footer (base.html)</footer>
+
+        {% block footer %}
+            <footer class="bg-light text-center py-3 mt-4 border-top">
+                <small class="text-muted">© 2025 Big Impression Tecnología · Uso interno</small>
+            </footer>
+        {% endblock footer %}
+
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js" 
+                integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" 
+                crossorigin="anonymous">
+        </script>
+
         {% block scripts %}{% endblock scripts %}
     </body>
 </html>
