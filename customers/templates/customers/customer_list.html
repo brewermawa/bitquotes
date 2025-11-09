@@ -22,7 +22,7 @@
 
 {% block content %}
     <form class="row g-2 align-items-end mb-3"
-          hx-get="{% url 'customers:customer_list' %}"
+          hx-get="{% url 'customers:customer_list_partial' %}"
           hx-trigger="keyup changed delay:300ms from:#q, submit"
           hx-target="#customers-table"
           hx-swap="outerHTML"
@@ -36,8 +36,10 @@
         </div>
 
         <div class="col-12 col-md-3 d-flex gap-2">
-            <button type="submit" class="btn btn-outline-secondary flex-grow-1"><i class="bi bi-funnel"></i> Aplicar</button>
-            <a href="{% url 'customers:customer_list' %}" class="btn btn-outline-light flex-grow-1"><i class="bi bi-x-circle"></i> Limpiar</a>
+            <a href="{% url 'customers:customer_list' %}" class="btn btn-primary btn-sm d-flex align-items-center gap-1">
+                <i class="bi bi-x-circle"></i>
+                <span>Limpiar</span>
+            </a>
         </div>
 
         <div id="search-indicator" class="ms-2 small text-muted htmx-indicator d-flex align-items-center gap-2">
@@ -45,12 +47,6 @@
             Buscando…
         </div>
     </form>
+    {% include 'customers/_customers_table.html' %}
 
-    <div id="customer-table">
-        {% if customers %}
-            Si hay customers
-        {% else %}
-            No hay customers
-        {% endif %}
-    </div>
 {% endblock %}

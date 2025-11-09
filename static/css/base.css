@@ -7,3 +7,8 @@
     color: #4cc2ff !important;
     text-decoration: underline;
 }
+
+.page-link { cursor: pointer; }
+
+.htmx-indicator { display: none; }
+.htmx-request .htmx-indicator { display: inline-flex; }

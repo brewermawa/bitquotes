@@ -1,39 +1,60 @@
 from django.views.generic import ListView
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.urls import reverse
+from django.http import HttpResponseRedirect
 
 from .models import Customer
 from users.models import CustomUser
 
 
-class ClientListView(LoginRequiredMixin, ListView):
+class CustomerListBase(LoginRequiredMixin, ListView):
     model = Customer
-    template_name = "customers/customer_list.html"
     context_object_name = "customers"
     ordering = ["name"]
     paginate_by = 10
 
     def get_queryset(self):
-        #TODO: Búsqueda por RFC
-        queryset = super().get_queryset().select_related("assigned_to")
-        q = self.request.GET.get("q")
-        assigned = self.request.GET.get("assigned")
-
-
-        if (not q and not assigned) or not assigned.isdigit():
-            return queryset
-        
-        if q and not assigned:
-            return queryset.filter(name__icontains=q.strip())
-        
-        if not q and (assigned):
-            return queryset.filter(assigned_to_id=assigned)
-        
-        return queryset.filter(name__icontains=q.strip()).filter(assigned_to_id=assigned)
+        queryset = super().get_queryset()
+        q = self.request.GET.get("q", "")
+        if q:
+            queryset = queryset.filter(name__icontains=q) | queryset.filter(rfc__icontains=q)
+                
+        return queryset
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context["users"] = CustomUser.objects.filter(is_active=True)
+
         return context
     
+    def paginate_queryset(self, queryset, page_size):
+        paginator = self.get_paginator(queryset, page_size)
+        page = self.request.GET.get(self.page_kwarg, 1)
+        page_obj = paginator.get_page(page)
+        
+        return paginator, page_obj, page_obj.object_list, page_obj.has_other_pages()
+    
+
+class CustomerListView(CustomerListBase):
+    template_name = "customers/customer_list.html"
+
+class CustomerListPartialView(CustomerListBase):
+    template_name = "customers/_customers_table.html"
+
+    def get(self, request, *args, **kwargs):
+        if request.META.get("HTTP_HX_REQUEST") != "true":
+            return HttpResponseRedirect(reverse("customers:customer_list"))
+        
+        response = super().get(request, *args, **kwargs)
+
+        base_url = reverse("customers:customer_list")
+        query = request.GET.urlencode()
+        clean_url = f"{base_url}?{query}" if query else base_url
+
+        response["HX-Push-Url"] = clean_url
+        
+        return response
+    
+
     
                 
