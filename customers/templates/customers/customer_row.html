@@ -1,0 +1,37 @@
+<tr id="customer-row-{{ customer.id }}">
+    <!-- Nombre -->
+    <td style="min-width:260px;">
+        <div class="fw-semibold text-truncate" style="max-width: 360px;" data-hl="1">
+            <a href="#" class="text-decoration-none">{{ customer.name }}</a>
+        </div>
+    </td>
+
+    <!-- RFC -->
+    <td style="min-width:160px;">
+        <code data-hl="1">{{ customer.formatted_rfc|default:customer.rfc }}</code>
+    </td>
+
+    <!-- Asignado a -->
+    <td style="min-width:200px;">
+        <i class="bi bi-person-circle me-1"></i>
+        {{ customer.assigned_to.get_full_name|default:customer.assigned_to.username }}
+    </td>
+
+    <!-- Acciones -->
+    <td class="text-end" style="min-width:220px;">
+        <div class="btn-group" role="group">
+            <a href="#" class="btn btn-sm btn-outline-primary"
+               hx-get="{% url 'customers:customer_row_partial' customer.id %}"
+               hx-target="#customer-row-{{ customer.id }}"
+               hx-swap="outerHTML">
+                <i class="bi bi-pencil-square"></i> Editar
+            </a>
+            <a href="#" class="btn btn-sm btn-outline-success">
+                <i class="bi bi-people"></i> Contactos
+            </a>
+            <a href="#" class="btn btn-sm btn-outline-secondary">
+                <i class="bi bi-receipt"></i> Cotizaciones
+            </a>
+        </div>
+    </td>
+</tr>

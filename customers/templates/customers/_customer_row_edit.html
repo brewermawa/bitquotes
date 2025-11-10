@@ -1,0 +1,58 @@
+<tr id="customer-row-{{ customer.id }}">
+    <!-- Nombre (editable) -->
+    <td style="min-width:260px;">
+        <input type="text" name="name"
+               class="form-control form-control-sm {% if errors.name %}is-invalid{% endif %}"
+               value="{{ customer.name }}" maxlength="120" required>
+        {% if errors.name %}
+            <div class="invalid-feedback d-block">{{ errors.name }}</div>
+        {% endif %}
+    </td>
+
+    <!-- RFC (editable) -->
+    <td style="min-width:160px;">
+        <input type="text" name="rfc"
+               class="form-control form-control-sm {% if errors.rfc %}is-invalid{% endif %}"
+               value="{{ customer.rfc }}" maxlength="13"
+               pattern="[A-Z&Ñ]{3,4}\d{6}[A-Z0-9]{2,3}"
+               title="Formato RFC válido (13 caracteres)">
+        {% if errors.rfc %}
+            <div class="invalid-feedback d-block">{{ errors.rfc }}</div>
+        {% endif %}
+    </td>
+
+    <!-- Asignado a (solo lectura aquí) -->
+    <td style="min-width:200px;">
+        <i class="bi bi-person-circle me-1"></i>
+        {{ customer.assigned_to.get_full_name|default:customer.assigned_to.username }}
+    </td>
+
+    <!-- Acciones -->
+    <td class="text-end" style="min-width:220px;">
+        <form hx-post="{% url 'customers:customer_row_update' customer.id %}"
+              hx-target="#customer-row-{{ customer.id }}"
+              hx-swap="outerHTML"
+              hx-include="closest tr"
+              class="d-inline-flex gap-2 align-items-center">
+
+            {% csrf_token %}
+            <input type="hidden" name="id" value="{{ customer.id }}">
+
+            <button type="submit" class="btn btn-sm btn-primary d-flex align-items-center gap-1">
+                <i class="bi bi-check2"></i><span>Guardar</span>
+            </button>
+
+            <a href="#" class="btn btn-sm btn-outline-secondary d-flex align-items-center gap-1"
+               hx-get="{% url 'customers:customer_row_readonly' customer.id %}"
+               hx-target="#customer-row-{{ customer.id }}"
+               hx-swap="outerHTML">
+                <i class="bi bi-x-lg"></i><span>Cancelar</span>
+            </a>
+
+            <span class="small text-muted htmx-indicator ms-2 d-flex align-items-center gap-2">
+                <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                Guardando…
+            </span>
+        </form>
+    </td>
+</tr>

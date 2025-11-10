@@ -1,4 +1,4 @@
-from django.views.generic import ListView
+from django.views.generic import ListView, DetailView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.urls import reverse
 from django.http import HttpResponseRedirect
@@ -54,6 +54,10 @@ class CustomerListPartialView(CustomerListBase):
         response["HX-Push-Url"] = clean_url
         
         return response
+    
+class CustomerDetailView(LoginRequiredMixin, DetailView):
+    model = Customer
+    template_name = "customers/_customer_row_edit.html"
     
 
     
