@@ -13,10 +13,23 @@
         <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css">
         <link rel="stylesheet" href="{% static 'css/base.css' %}">
         <script src="https://unpkg.com/htmx.org@1.9.12"></script>
-        <script>console.log('htmx loaded?', !!window.htmx);</script>
+
         {% block head_extra %}{% endblock head_extra %}
     </head>
+
     <body>
+        <!-- Toasts -->
+    <div class="toast-container position-fixed top-0 end-0 p-3" style="z-index: 1080;">
+        <div id="app-toast" class="toast align-items-center text-bg-success border-0" role="alert" aria-live="assertive" aria-atomic="true" data-bs-delay="3000">
+            <div class="d-flex">
+                <div class="toast-body d-flex align-items-center gap-2">
+                    <i class="bi bi-check-circle"></i>
+                    <span id="app-toast-text">Operación exitosa</span>
+                </div>
+                <button type="button" class="btn-close btn-close-white me-2 m-auto" data-bs-dismiss="toast" aria-label="Cerrar"></button>
+            </div>
+        </div>
+    </div>
         {% block header %}
         <header>
             <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
@@ -125,6 +138,51 @@
                 integrity="sha384-YvpcrYf0tY3lHB60NNkmXc5s9fDVZLESaAA55NDzOxhy9GkcIdslK1eN7N6jIeHz" 
                 crossorigin="anonymous">
         </script>
+        <script>
+  document.addEventListener('DOMContentLoaded', function () {
+    // Elementos del toast
+    const toastEl = document.getElementById('app-toast');
+    const toastText = document.getElementById('app-toast-text');
+
+    // Guardrails: verifica que existan y que Bootstrap esté cargado
+    if (!toastEl) {
+      console.warn('[toast] No se encontró #app-toast en el DOM');
+      return;
+    }
+    if (!window.bootstrap || !bootstrap.Toast) {
+      console.warn('[toast] Bootstrap Toast no está disponible');
+      return;
+    }
+
+    // Instancia reutilizable
+    const toast = bootstrap.Toast.getOrCreateInstance(toastEl, { delay: 3000 });
+
+    // Función para ajustar color según nivel
+    function setToastLevel(level) {
+      toastEl.classList.remove('text-bg-success', 'text-bg-danger', 'text-bg-warning', 'text-bg-info');
+      switch ((level || 'success').toLowerCase()) {
+        case 'danger':
+        case 'error': toastEl.classList.add('text-bg-danger'); break;
+        case 'warning': toastEl.classList.add('text-bg-warning'); break;
+        case 'info': toastEl.classList.add('text-bg-info'); break;
+        default: toastEl.classList.add('text-bg-success'); break;
+      }
+    }
+
+    // Listener del evento que dispara HTMX vía header HX-Trigger
+    document.body.addEventListener('toast', function (e) {
+      const detail = e.detail || {};
+      console.log('[toast] evento recibido:', detail);
+
+      setToastLevel(detail.level);
+      toastText.textContent = detail.message || 'Operación realizada';
+      toast.show();
+    });
+
+    //Botón de prueba (opcional): descomenta para probar rápido
+    //document.body.dispatchEvent(new CustomEvent('toast', { detail: { message: 'Prueba de toast', level: 'info' } }));
+  });
+</script>
 
         {% block scripts %}{% endblock scripts %}
     </body>

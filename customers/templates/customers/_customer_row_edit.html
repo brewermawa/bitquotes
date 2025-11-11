@@ -21,10 +21,25 @@
         {% endif %}
     </td>
 
-    <!-- Asignado a (solo lectura aquí) -->
+    <!-- Asignado a (editable) -->
     <td style="min-width:200px;">
-        <i class="bi bi-person-circle me-1"></i>
-        {{ customer.assigned_to.get_full_name|default:customer.assigned_to.username }}
+        {{ mawa }}
+        <div class="d-flex align-items-center gap-2">
+            <i class="bi bi-person-circle"></i>
+            <select name="assigned_to"
+                    class="form-select form-select-sm {% if errors.assigned_to %}is-invalid{% endif %}"
+                    style="min-width: 220px;">
+                {% for u in users %}
+                    <option value="{{ u.id }}"
+                        {% if u.id == customer.assigned_to_id %}selected{% endif %}>
+                        {{ u.get_full_name|default:u.username }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+        {% if errors.assigned_to %}
+        <div class="invalid-feedback d-block">{{ errors.assigned_to }}</div>
+        {% endif %}
     </td>
 
     <!-- Acciones -->
@@ -37,17 +52,22 @@
 
             {% csrf_token %}
             <input type="hidden" name="id" value="{{ customer.id }}">
+            <div class="btn-group" role="group">
+                <a href="#" class="btn btn-sm btn-primary d-flex align-items-center gap-1"
+                   hx-post="{% url 'customers:customer_row_update' customer.id %}"
+                   hx-target="#customer-row-{{ customer.id }}"
+                   hx-swap="outerHTML"
+                   hx-include="closest tr">
+                    <i class="bi bi-check-lg"></i><span>Guardar</span>
+                </a>
 
-            <button type="submit" class="btn btn-sm btn-primary d-flex align-items-center gap-1">
-                <i class="bi bi-check2"></i><span>Guardar</span>
-            </button>
-
-            <a href="#" class="btn btn-sm btn-outline-secondary d-flex align-items-center gap-1"
-               hx-get="{% url 'customers:customer_row_readonly' customer.id %}"
-               hx-target="#customer-row-{{ customer.id }}"
-               hx-swap="outerHTML">
-                <i class="bi bi-x-lg"></i><span>Cancelar</span>
-            </a>
+                <a href="#" class="btn btn-sm btn-outline-secondary d-flex align-items-center gap-1"
+                   hx-get="{% url 'customers:customer_row_readonly' customer.id %}"
+                   hx-target="#customer-row-{{ customer.id }}"
+                   hx-swap="outerHTML">
+                    <i class="bi bi-x-lg"></i><span>Cancelar</span>
+                </a>
+            </div>
 
             <span class="small text-muted htmx-indicator ms-2 d-flex align-items-center gap-2">
                 <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>

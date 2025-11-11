@@ -1,6 +1,7 @@
 from django.db import models
 from django.core.validators import RegexValidator
 from django.conf import settings
+from django.utils.text import slugify
 
 
 class Customer(models.Model):
@@ -29,6 +30,13 @@ class Customer(models.Model):
     def clean(self):
         super().clean()
         self.rfc =self.rfc.upper()
+
+    def save(self, *args, **kwargs):
+        if not self.slug:
+            self.slug = slugify(self.name)
+
+        super().save(*args, **kwargs)
+
     
     def formatted_rfc(self):
         if self.rfc[3].isdigit():

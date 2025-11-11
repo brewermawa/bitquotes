@@ -1,0 +1,126 @@
+{% extends "base.html" %}
+
+{% block title %} - Clientes{% endblock %}
+{% block nav_active_clientes %}active{% endblock nav_active_clientes %}
+
+{% block content_header %}
+    <div class="d-flex align-items-end justify-content-between mt-3 mb-2">
+        <div>
+            <h1 class="h4 mb-2 d-flex align-items-center gap-2">
+                <i class="bi bi-people"></i> Clientes
+            </h1>
+            <small class="text-muted">Insertar nuevo cliente</small>
+        </div>
+        <div>
+            <a href="{% url 'customers:customer_list' %}" class="btn btn-outline-secondary">
+                <i class="bi bi-arrow-left"></i> Regresar al listado
+            </a>
+        </div>
+    </div>
+    <hr class="mt-2 mb-3">
+{% endblock content_header %}
+
+{% block content %}
+    <div class="row">
+        <div class="col-12 col-lg-8">
+            <div class="card shadow-sm">
+                <div class="card-body">
+                    {# Errores no asociados a campos #}
+                    {% if form.non_field_errors %}
+                        <div class="alert alert-danger">
+                            {% for e in form.non_field_errors %}{{ e }}<br>{% endfor %}
+                        </div>
+                    {% endif %}
+
+                    <form method="post" action="{% url 'customers:new_customer' %}" novalidate>
+                        {% csrf_token %}
+
+                        <!-- Nombre / Razón social -->
+                        <div class="mb-3">
+                            <label class="form-label">Nombre o razón social <span class="text-danger">*</span></label>
+                            <input type="text"
+                                name="{{ form.name.name }}"
+                                value="{{ form.name.value|default_if_none:'' }}"
+                                maxlength="120"
+                                required
+                                class="form-control {% if form.name.errors %}is-invalid{% endif %}"
+                                placeholder="Ej. ACME, S.A. de C.V."
+                                autofocus>
+                            {% if form.name.errors %}
+                                <div class="invalid-feedback">
+                                    {% for e in form.name.errors %}{{ e }}{% endfor %}
+                                </div>
+                            {% else %}
+                                <div class="form-text">Usa el nombre comercial o razón social completa.</div>
+                            {% endif %}
+                        </div>
+
+                        <!-- RFC -->
+                        <div class="mb-3">
+                            <label class="form-label">RFC <span class="text-danger">*</span></label>
+                            <input type="text"
+                                   name="{{ form.rfc.name }}"
+                                   value="{{ form.rfc.value|default_if_none:'' }}"
+                                   maxlength="13"
+                                   pattern="[A-Z&Ñ]{3,4}\d{6}[A-Z0-9]{2,3}"
+                                   title="Formato RFC válido (13 caracteres)"
+                                   required
+                                   class="form-control text-uppercase {% if form.rfc.errors %}is-invalid{% endif %}"
+                                   placeholder="Ej. ABC123456XY1">
+                            {% if form.rfc.errors %}
+                                <div class="invalid-feedback">
+                                    {% for e in form.rfc.errors %}{{ e }}{% endfor %}
+                                </div>
+                            {% else %}
+                                <div class="form-text">EL RFC debe ser único y con formato válido.</div>
+                            {% endif %}
+                        </div>
+
+
+                        <!-- Asignado a -->
+                        <div class="mb-4">
+                            <label class="form-label">Asignado a <span class="text-danger">*</span></label>
+                            <select name="{{ form.assigned_to.name }}"
+                                    class="form-select {% if form.assigned_to.errors %}is-invalid{% endif %}">
+                                {% for u in users %}
+                                    <option value="{{ u.id }}" {% if u.id == user.id %}selected{% endif %}>
+                                        {{ u.get_full_name|default:u.username }}
+                                    </option>
+                                {% endfor %}
+                            </select>
+                            {% if form.assigned_to.errors %}
+                                <div class="invalid-feedback">
+                                {% for e in form.assigned_to.errors %}{{ e }}{% endfor %}
+                                </div>
+                            {% else %}
+                                <div class="form-text">Usuario responsable (Vendedor/CSR/Gerente).</div>
+                            {% endif %}
+                        </div>
+
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-check2-circle"></i> Guardar cliente
+                            </button>
+                            <a href="{% url 'customers:customer_list' %}" class="btn btn-outline-secondary">
+                                Cancelar
+                            </a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Columna derecha: tips o políticas -->
+        <div class="col-12 col-lg-4 mt-3 mt-lg-0">
+            <div class="card border-0 bg-light">
+                <div class="card-body">
+                <h6 class="text-uppercase text-muted mb-3">Consejos</h6>
+                <ul class="small mb-0">
+                    <li>El <strong>RFC</strong> debe ser único y con formato válido.</li>
+                    <li>Después de crear el cliente, agrega al menos un <strong>contacto</strong> para poder generar cotizaciones.</li>
+                </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock content %}
