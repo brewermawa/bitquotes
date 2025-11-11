@@ -1,0 +1,189 @@
+{% extends "base.html" %}
+
+{% block title %} - Nuevo contacto{% endblock %}
+{% block nav_active_clientes %}active{% endblock %}
+
+{% block content_header %}
+  <div class="d-flex align-items-end justify-content-between mt-3 mb-2">
+    <div>
+      <h1 class="h4 mb-2 d-flex align-items-center gap-2">
+        <i class="bi bi-person-plus"></i> Nuevo contacto
+      </h1>
+      <small class="text-muted">
+        Cliente: <strong>{{ customer.name }}</strong> · RFC: <code>{{ customer.formatted_rfc|default:customer.rfc }}</code>
+      </small>
+    </div>
+    <div>
+      <a href="{{ customer.get_absolute_url }}" class="btn btn-outline-secondary">
+        <i class="bi bi-arrow-left"></i> Regresar al cliente
+      </a>
+    </div>
+  </div>
+  <hr class="mt-2 mb-3">
+{% endblock content_header %}
+
+{% block content %}
+    <div class="row">
+        <div class="col-12 col-lg-8">
+            <div class="card shadow-sm">
+                <div class="card-body">
+
+                {# Errores generales del formulario #}
+                    {% if form.non_field_errors %}
+                        <div class="alert alert-danger">
+                        {% for e in form.non_field_errors %}{{ e }}<br>{% endfor %}
+                        </div>
+                    {% endif %}
+
+                    <form method="post" action="{% url 'customers:new_contact' customer.slug %}" novalidate>
+                        {% csrf_token %}
+
+                        <!-- Nombre  y apelliso-->
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Nombre <span class="text-danger">*</span></label>
+                                <input type="text"
+                                       name="{{ form.first_name.name }}"
+                                       value="{{ form.first_name.value|default_if_none:'' }}"
+                                       maxlength="80"
+                                       required
+                                       autofocus
+                                       class="form-control {% if form.first_name.errors %}is-invalid{% endif %}"
+                                       placeholder="Ej. María López">
+                                {% if form.first_name.errors %}
+                                    <div class="invalid-feedback">
+                                        {% for e in form.first_name.errors %}{{ e }}{% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label">Apellido <span class="text-danger">*</span></label>
+                                <input type="text"
+                                       name="{{ form.last_name.name }}"
+                                       value="{{ form.last_name.value|default_if_none:'' }}"
+                                       maxlength="80"
+                                       required
+                                       autofocus
+                                       class="form-control {% if form.last_name.errors %}is-invalid{% endif %}"
+                                       placeholder="Ej. María López">
+                                {% if form.last_name.errors %}
+                                    <div class="invalid-feedback">
+                                        {% for e in form.last_name.errors %}{{ e }}{% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+
+                        <!-- Puesto (opcional) -->
+                        <div class="mb-3">
+                            <label class="form-label">Puesto</label>
+                            <input type="text"
+                                   name="{{ form.title.name }}"
+                                   value="{{ form.title.value|default_if_none:'' }}"
+                                   maxlength="80"
+                                   class="form-control {% if form.title.errors %}is-invalid{% endif %}"
+                                   placeholder="Ej. Compras / Arquitecta">
+                            {% if form.title.errors %}
+                                <div class="invalid-feedback">
+                                    {% for e in form.title.errors %}{{ e }}{% endfor %}
+                                </div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Email -->
+                        <div class="mb-3">
+                            <label class="form-label">Email <span class="text-danger">*</span></label>
+                            <input type="email"
+                                   name="{{ form.email.name }}"
+                                   value="{{ form.email.value|default_if_none:'' }}"
+                                   required
+                                   class="form-control {% if form.email.errors %}is-invalid{% endif %}"
+                                   placeholder="nombre@empresa.com">
+                            {% if form.email.errors %}
+                                <div class="invalid-feedback">
+                                    {% for e in form.email.errors %}{{ e }}{% endfor %}
+                                </div>
+                            {% else %}
+                                <div class="form-text">Se validará que el correo sea único.</div>
+                            {% endif %}
+                        </div>
+
+                        <!-- Teléfonos -->
+                        <div class="row">
+                            <div class="col-md-5 mb-3">
+                                <label class="form-label">Teléfono</label>
+                                <input type="text"
+                                       name="{{ form.phone.name }}"
+                                       value="{{ form.phone.value|default_if_none:'' }}"
+                                       class="form-control {% if form.phone.errors %}is-invalid{% endif %}"
+                                       placeholder="81-0000-0000">
+                                {% if form.phone.errors %}
+                                    <div class="invalid-feedback">
+                                        {% for e in form.phone.errors %}{{ e }}{% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-2 mb-3">
+                                <label class="form-label">Extensión</label>
+                                <input type="text"
+                                       name="{{ form.phone_extension.name }}"
+                                       value="{{ form.phone_extension.value|default_if_none:'' }}"
+                                       class="form-control {% if form.phone_extension.errors %}is-invalid{% endif %}"
+                                       placeholder="Ej. 123">
+                                {% if form.phone_extension.errors %}
+                                    <div class="invalid-feedback">
+                                        {% for e in form.phone_extension.errors %}{{ e }}{% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                            <div class="col-md-5 mb-3">
+                                <label class="form-label">Celular</label>
+                                <input type="text"
+                                       name="{{ form.cel_phone.name }}"
+                                       value="{{ form.cel_phone.value|default_if_none:'' }}"
+                                       class="form-control {% if form.cel_phone.errors %}is-invalid{% endif %}"
+                                       placeholder="81-0000-0000">
+                                {% if form.cel_phone.errors %}
+                                    <div class="invalid-feedback">
+                                        {% for e in form.cel_phone.errors %}{{ e }}{% endfor %}
+                                    </div>
+                                {% endif %}
+                            </div>
+                        </div>
+                            <!-- Activo -->
+                        <div class="form-check mb-4">
+                            <input class="form-check-input" type="checkbox"
+                                name="{{ form.is_active.name }}"
+                                id="id_is_active"
+                                {% if form.is_active.value %}checked{% endif %}>
+                            <label class="form-check-label" for="id_is_active">
+                                Contacto activo
+                            </label>
+                        </div>
+
+                        <div class="d-flex gap-2">
+                            <button type="submit" class="btn btn-primary">
+                                <i class="bi bi-check2-circle"></i> Guardar contacto
+                            </button>
+                            <a href="{{ customer.get_absolute_url }}" class="btn btn-outline-secondary">Cancelar</a>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Tips -->
+        <div class="col-12 col-lg-4 mt-3 mt-lg-0">
+            <div class="card border-0 bg-light">
+                <div class="card-body">
+                    <h6 class="text-uppercase text-muted mb-3">Consejos</h6>
+                    <ul class="small mb-0">
+                        <li>El <strong>email</strong> debe ser único en el sistema.</li>
+                        <li>Teléfono y celular de 10 dígitos cuando sea posible.</li>
+                        <li>Los contactos se pueden desactivar sin eliminarlos.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+  </div>
+{% endblock content %}

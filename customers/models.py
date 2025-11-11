@@ -2,6 +2,7 @@ from django.db import models
 from django.core.validators import RegexValidator
 from django.conf import settings
 from django.utils.text import slugify
+from django.urls import reverse
 
 
 class Customer(models.Model):
@@ -47,7 +48,8 @@ class Customer(models.Model):
     def __str__(self):
         return self.name
     
-    #TODO: Customer get_absolute_url
+    def get_absolute_url(self):
+        return reverse("customers:customer_detail", kwargs={"slug": self.slug})
 
 
 class Contact(models.Model):
@@ -72,6 +74,7 @@ class Contact(models.Model):
 
     first_name = models.CharField(max_length=30, verbose_name="Nombre")
     last_name = models.CharField(max_length=30, verbose_name="Apellido")
+    title = models.CharField(max_length=30, blank=True, null=True, verbose_name="Puesto")
     phone = models.CharField(max_length=10, validators=[phone_validator], verbose_name="Teléfono oficina")
     phone_extension = models.CharField(max_length=5, validators=[extension_validator], null=True, blank=True, verbose_name="Extensión")
     cel_phone = models.CharField(max_length=10, validators=[phone_validator], verbose_name="Teléfono celular")
@@ -89,7 +92,11 @@ class Contact(models.Model):
     def full_name(self):
         return f"{self.first_name} {self.last_name}"
     
-    #TODO: Contact get_absolute_url
+    def formatted_phone(self):
+        return f"({self.phone[0:2]}){self.phone[2:6]}-{self.phone[6:]}"
+    
+
+    
 
     
 

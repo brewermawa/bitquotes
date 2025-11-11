@@ -1,13 +1,13 @@
 import re
 import json
-from django.views.generic import ListView, CreateView
+from django.views.generic import ListView, CreateView, DetailView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.urls import reverse, reverse_lazy
 from django.http import HttpResponse, HttpResponseBadRequest, HttpResponseRedirect
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, get_object_or_404
 
-from .models import Customer
+from .models import Customer, Contact
 from users.models import CustomUser
 
 RFC_REGEX = re.compile(r"^([A-Za-zÑñ\x26]{3,4}([0-9]{2})(0[1-9]|1[0-2])(0[1-9]|1[0-9]|2[0-9]|3[0-1]))([A-Za-z\d]{3})?$")
@@ -72,8 +72,21 @@ class CustomerCreateView(LoginRequiredMixin, CreateView):
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context["users"] = CustomUser.objects.filter(is_active=True)
-        
+
         return context
+    
+class CustomerDetailView(LoginRequiredMixin, DetailView):
+    model = Customer
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["contacts"] = self.object.contacts.all()
+
+        return context
+    
+    def get_queryset(self):
+        return Customer.objects.select_related("assigned_to").prefetch_related("contacts")
+    
     
     
 @login_required
@@ -165,5 +178,33 @@ def customer_row_update(request, pk):
     })
     
     return response
+
+class ContactCreateView(LoginRequiredMixin, CreateView):
+    model = Contact
+    fields = [
+        "first_name", "last_name", "title", "phone", "phone_extension",
+        "cel_phone", "email", "is_active"
+    ]
+    template_name = "customers/contact_form.html"
+
+    def dispatch(self, request, *args, **kwargs):
+        self.customer = get_object_or_404(Customer, slug=kwargs["slug"])
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["customer"] = self.customer
+
+        return context
+    
+    def form_valid(self, form):
+        form.instance.customer = self.customer
+
+        return super().form_valid(form)
+    
+    def get_success_url(self):
+        return self.customer.get_absolute_url()
+    
+    
 
                 
