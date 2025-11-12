@@ -1,9 +1,9 @@
 import re
 import json
-from django.views.generic import ListView, CreateView, DetailView
+from django.views.generic import ListView, CreateView, DetailView, UpdateView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.urls import reverse, reverse_lazy
-from django.http import HttpResponse, HttpResponseBadRequest, HttpResponseRedirect
+from django.http import HttpResponseNotAllowed, HttpResponseBadRequest, HttpResponseRedirect
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render, get_object_or_404
 
@@ -205,6 +205,48 @@ class ContactCreateView(LoginRequiredMixin, CreateView):
     def get_success_url(self):
         return self.customer.get_absolute_url()
     
-    
 
-                
+class ContactUpdateView(LoginRequiredMixin, UpdateView):
+    model = Contact
+    fields = [
+        "first_name", "last_name", "title", "phone", "phone_extension",
+        "cel_phone", "email", "is_active"
+    ]
+    template_name = "customers/contact_edit.html"
+
+    def dispatch(self, request, *args, **kwargs):
+        self.customer = get_object_or_404(Customer, slug=kwargs["slug"])
+        return super().dispatch(request, *args, **kwargs)
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["customer"] = self.customer
+
+        return context
+    
+    def get_success_url(self):
+        return self.customer.get_absolute_url()
+    
+@login_required
+def contact_toggle(request, slug, pk):
+    if request.method != "POST":
+        return HttpResponseNotAllowed(["POST"])
+
+    contact = get_object_or_404(Contact, pk=pk, customer__slug=slug)
+    contact.is_active = not contact.is_active
+    contact.save()
+
+    customer = get_object_or_404(Customer, pk=contact.customer.pk)
+
+    response = render(request, "customers/contact_toggle.html", {
+        "customer": customer,
+        "c": contact,
+    })
+
+    response["HX-Trigger"] = json.dumps({
+        "toast": {
+            "message": f"Contacto {'activado' if contact.is_active else 'desactivado'} correctamente",
+            "level": "success"
+        }
+    })
+    return response

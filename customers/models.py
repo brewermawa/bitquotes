@@ -75,9 +75,9 @@ class Contact(models.Model):
     first_name = models.CharField(max_length=30, verbose_name="Nombre")
     last_name = models.CharField(max_length=30, verbose_name="Apellido")
     title = models.CharField(max_length=30, blank=True, null=True, verbose_name="Puesto")
-    phone = models.CharField(max_length=10, validators=[phone_validator], verbose_name="Teléfono oficina")
-    phone_extension = models.CharField(max_length=5, validators=[extension_validator], null=True, blank=True, verbose_name="Extensión")
-    cel_phone = models.CharField(max_length=10, validators=[phone_validator], verbose_name="Teléfono celular")
+    phone = models.CharField(max_length=10, validators=[phone_validator], blank=True, null=True, verbose_name="Teléfono oficina")
+    phone_extension = models.CharField(max_length=5, validators=[extension_validator], blank=True, null=True, verbose_name="Extensión")
+    cel_phone = models.CharField(max_length=10, validators=[phone_validator], blank=True, null=True, verbose_name="Teléfono celular")
     email = models.EmailField(unique=True)
     customer = models.ForeignKey(Customer, on_delete=models.CASCADE, related_name="contacts")
     is_active = models.BooleanField(default=True, verbose_name="Activo")
@@ -93,11 +93,26 @@ class Contact(models.Model):
         return f"{self.first_name} {self.last_name}"
     
     def formatted_phone(self):
-        return f"({self.phone[0:2]}){self.phone[2:6]}-{self.phone[6:]}"
-    
+        if self.phone:
+            return f"({self.phone[0:2]}){self.phone[2:6]}-{self.phone[6:]}"
 
+        return ""
     
+    def formatted_cel_phone(self):
+        if self.cel_phone:
+            return f"({self.cel_phone[0:2]}){self.cel_phone[2:6]}-{self.cel_phone[6:]}"
 
+        return ""
     
+    def save(self, *args, **kwargs):
+        if self.first_name:
+            self.first_name = self.first_name.title().strip()
 
-    
+        if self.last_name:
+            self.last_name = self.last_name.title().strip()
+
+        if self.title:
+            self.title = self.title.title().strip()
+
+        super().save(*args, **kwargs)
+            

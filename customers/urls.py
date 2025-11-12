@@ -16,5 +16,7 @@ urlpatterns = [
     path("<int:pk>/row/readonly/", views.customer_row_readonly, name="customer_row_readonly"),
     path("<int:pk>/row/update/", views.customer_row_update, name="customer_row_update"),
 
-    path("<slug:slug>/contact/new/", views.ContactCreateView.as_view(), name="new_contact")
+    path("<slug:slug>/contact/new/", views.ContactCreateView.as_view(), name="new_contact"),
+    path("<slug:slug>/<int:pk>/edit/", views.ContactUpdateView.as_view(), name="update_contact"),
+    path("<slug:slug>/<int:pk>/toggle/", views.contact_toggle, name="contact_toggle"),
 ]

@@ -71,7 +71,7 @@
                                 </thead>
                                 <tbody>
                                     {% for c in contacts %}
-                                        <tr>
+                                        <tr id="contact-row-{{ c.id }}">
                                             <td class="fw-semibold">{{ c.full_name }}</td>
                                             <td>
                                                 {% if c.email %}
@@ -82,20 +82,35 @@
                                             </td>
                                             <td>{{ c.formatted_phone|default:"—" }}</td>
                                             <td class="text-end">
-                                                <div class="btn-group">
-                                                <a href="" class="btn btn-sm btn-outline-primary">
+                                            <div class="btn-group" role="group">
+                                                <a href="{% url 'customers:update_contact' customer.slug c.id %}" class="btn btn-sm btn-outline-primary">
                                                     <i class="bi bi-pencil"></i> Editar
                                                 </a>
-                                                {% if c.is_active %}
-                                                    <a href="" class="btn btn-sm btn-outline-secondary">
-                                                    <i class="bi bi-eye-slash"></i> Desactivar
-                                                    </a>
-                                                {% else %}
-                                                    <a href="" class="btn btn-sm btn-outline-success">
-                                                    <i class="bi bi-eye"></i> Activar
-                                                    </a>
-                                                {% endif %}
-                                                </div>
+
+                                                <form method="post" action="{% url 'customers:contact_toggle' customer.slug c.id %}"
+                                                      hx-post="{% url 'customers:contact_toggle' customer.slug c.id %}"
+                                                      hx-target="#contact-row-{{ c.id }}"
+                                                      hx-swap="outerHTML"
+                                                      hx-indicator="#spinner-{{ c.id }}"
+                                                      class="d-inline"
+                                                      hx-on:htmx:beforeRequest="this.querySelector('button').disabled=true"
+                                                      hx-on:htmx:afterRequest="this.querySelector('button').disabled=false"
+                                                >
+                                                    {% csrf_token %}
+                                                    {% if c.is_active %}
+                                                        <button type="submit" class="btn btn-sm btn-outline-secondary">
+                                                            <i class="bi bi-eye-slash"></i> Desactivar
+                                                        </button>
+                                                    {% else %}
+                                                        <button type="submit" class="btn btn-sm btn-outline-success">
+                                                            <i class="bi bi-eye"></i> Activar
+                                                        </button>
+                                                    {% endif %}
+                                                    <span id="spinner-{{ c.id }}" class="htmx-indicator ms-2">
+                                                        <span class="spinner-border spinner-border-sm" role="status" aria-hidden="true"></span>
+                                                    </span>
+                                                </form>
+                                            </div>
                                             </td>
                                         </tr>
                                     {% endfor %}
