@@ -43,3 +43,19 @@ class Profile(models.Model):
     
     def formatted_cel_phone(self):
         return f"({self.cel_phone[:2]}){self.cel_phone[2:6]}-{self.cel_phone[6:]}"
+    
+    @property
+    def is_sales(self):
+        return self.role == self.Role.SALES
+
+    @property
+    def is_csr(self):
+        return self.role == self.Role.CSR
+
+    @property
+    def is_manager(self):
+        return self.role == self.Role.MANAGER
+
+    @property
+    def is_admin(self):
+        return self.role == self.Role.ADMIN

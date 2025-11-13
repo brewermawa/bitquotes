@@ -110,6 +110,8 @@ def customer_row_readonly(request, pk):
     """
     Devuelve SOLO el <tr> en modo lectura para el customer dado.
     """
+    print("Me encanta la verga")
+
     customer = get_object_or_404(Customer.objects.select_related("assigned_to"), pk=pk)
     return render(request, "customers/_customer_row_readonly.html", {
         "customer": customer,
@@ -250,3 +252,22 @@ def contact_toggle(request, slug, pk):
         }
     })
     return response
+
+@login_required
+def customer_search_htmx(request):
+    term = request.GET.get("search", "")
+    customers = Customer.objects.filter(name__icontains=term)[:10]
+
+    return render(request, "customers/_customer_search_list.html", {
+        "customers": customers
+    })
+
+@login_required
+def contacts_for_quote_htmx(request, pk):
+    customer = get_object_or_404(Customer, pk=pk)
+    contacts = customer.contacts.filter(is_active=True).order_by("first_name", "last_name")
+
+    return render(request, "customers/_contacts_for_quote_select.html", {
+        "customer": customer,
+        "contacts": contacts,
+    })

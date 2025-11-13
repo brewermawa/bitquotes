@@ -8,6 +8,11 @@ urlpatterns = [
     path("", views.CustomerListView.as_view(), name="customer_list"),
     path("partial/", views.CustomerListPartialView.as_view(), name="customer_list_partial"),
     path("new/", views.CustomerCreateView.as_view(), name="new_customer"),
+
+    #url dummy solo para que exista customer_search_htmx temporalmente
+    path("search-htmx/", views.customer_search_htmx, name="customer_search_htmx"),
+    path("<int:pk>/contacts-for-quote/", views.contacts_for_quote_htmx, name="contacts_for_quote"),
+
     path("<slug:slug>/", views.CustomerDetailView.as_view(), name="customer_detail"),
 
 
@@ -19,4 +24,6 @@ urlpatterns = [
     path("<slug:slug>/contact/new/", views.ContactCreateView.as_view(), name="new_contact"),
     path("<slug:slug>/<int:pk>/edit/", views.ContactUpdateView.as_view(), name="update_contact"),
     path("<slug:slug>/<int:pk>/toggle/", views.contact_toggle, name="contact_toggle"),
+
+    
 ]

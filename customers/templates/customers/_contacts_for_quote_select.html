@@ -1,0 +1,18 @@
+<div class="mb-3">
+  <label for="id_contact" class="form-label fw-semibold">Contacto</label>
+
+  {% if contacts %}
+    <select id="id_contact" name="contact" class="form-select">
+      <option value="">Selecciona un contacto…</option>
+      {% for contact in contacts %}
+        <option value="{{ contact.id }}">
+          {{ contact.full_name|default:contact.first_name }}{% if contact.last_name %} {{ contact.last_name }}{% endif %}
+        </option>
+      {% endfor %}
+    </select>
+  {% else %}
+    <select id="id_contact" name="contact" class="form-select" disabled>
+      <option value="">Este cliente no tiene contactos activos</option>
+    </select>
+  {% endif %}
+</div>

@@ -1,0 +1,101 @@
+{% extends "base.html" %}
+{% load form_tag %}
+
+{% block title %} - Nueva cotización{% endblock %}
+{% block nav_active_cotizaciones %}active{% endblock %}
+
+{% block content_header %}
+    <div class="d-flex align-items-end justify-content-between mt-3 mb-2">
+      <div>
+        <h1 class="h4 mb-2 d-flex align-items-center gap-2">
+          <i class="bi bi-file-earmark-plus"></i> Nueva cotización
+        </h1>
+        <small class="text-muted">Crear nueva cotización</small>
+      </div>
+      <div>
+        <a href="{% url 'quotes:quote_list' %}" class="btn btn-outline-secondary d-flex align-items-center gap-2">
+          <i class="bi bi-arrow-left"></i><span>Regresar</span>
+        </a>
+      </div>
+    </div>
+    <hr class="mt-2 mb-3">
+{% endblock content_header %}
+
+
+{% block content %}
+  <form method="post" class="card shadow-sm p-4" novalidate>
+    {% csrf_token %}
+
+    <!-- Cliente -->
+    <div class="mb-3">
+      <label class="form-label fw-semibold">Cliente</label>
+
+      <!-- Campo visible donde el usuario escribe -->
+      <input type="search" id="customer-search" class="form-control"
+             name="search" placeholder="Buscar cliente por nombre o RFC..."
+             hx-get="{% url 'customers:customer_search_htmx' %}"
+             hx-trigger="keyup changed delay:300ms"
+             hx-target="#customer-results"
+             hx-indicator="#customer-loading"
+             autocomplete="off"
+      >
+
+      <!-- Loader -->
+      <div id="customer-loading" class="htmx-indicator mt-1 small text-muted">
+          <i class="bi bi-arrow-repeat"></i> Buscando...
+      </div>
+
+      <!-- Resultados de búsqueda -->
+      <div id="customer-results" class="list-group mt-2"></div>
+
+      <!-- Hidden input con el cliente seleccionado -->
+      <input type="hidden" name="customer" id="customer-id">
+    </div>
+
+    <!-- Contacto -->
+    <div id="contact-container">
+      <div class="mb-3">
+        <label class="form-label fw-semibold">Contacto</label>
+        <select id="id_contact" name="contact" class="form-select" disabled>
+          <option value="">Selecciona un cliente…</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Asignar a (solo visible para CSR / Manager) -->
+    {% if user.profile.is_csr or user.profile.is_manager %}
+      <div class="mb-3">
+        <label for="{{ form.assigned_to.id_for_label|default:form.user.id_for_label }}" class="form-label fw-semibold">
+          Asignar a (vendedor)
+        </label>
+        {% if form.assigned_to %}
+          {{ form.assigned_to|add_class:"form-select" }}
+          {% if form.assigned_to.errors %}
+            <div class="invalid-feedback d-block">
+              {% for e in form.assigned_to.errors %}{{ e }}{% endfor %}
+            </div>
+          {% endif %}
+        {% elif form.user %}
+          {{ form.user|add_class:"form-select" }}
+          {% if form.user.errors %}
+            <div class="invalid-feedback d-block">
+              {% for e in form.user.errors %}{{ e }}{% endfor %}
+            </div>
+          {% endif %}
+        {% endif %}
+      </div>
+    {% endif %}
+
+    <hr class="my-4">
+
+    <!-- Botones de acción -->
+    <div class="d-flex justify-content-end gap-2">
+      <a href="{% url 'quotes:quote_list' %}" class="btn btn-outline-secondary">
+        <i class="bi bi-x-circle"></i> Cancelar
+      </a>
+      <button type="submit" class="btn btn-primary">
+        <i class="bi bi-check2-circle"></i> Guardar cotización
+      </button>
+    </div>
+  </form>
+{% endblock content %}
