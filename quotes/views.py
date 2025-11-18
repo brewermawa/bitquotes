@@ -36,3 +36,9 @@ class QuoteCreateView(LoginRequiredMixin, CreateView):
             form.instance.user = self.request.user
 
         return super().form_valid(form)
+    
+
+def load_users_htmx(request):
+    users = CustomUser.objects.filter(is_active=True)
+    
+    return render(request, "quotes/_users_select_options.html", {"users": users})

@@ -3,7 +3,6 @@ from django.contrib import messages
 from django.contrib.auth import authenticate, login
 from django.http import HttpResponse
 
-
 from .forms import LoginForm
 
 
@@ -27,3 +26,4 @@ def user_login(request):
         form = LoginForm()
 
     return render(request, "users/login.html", {"form": form})
+
