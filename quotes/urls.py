@@ -11,4 +11,4 @@ urlpatterns = [
     path("<int:pk>/", views.dashboard, name="quote_detail"),
     path("<int:pk>/edit", views.dashboard, name="quote_edit"),
     path("load-users-htmx/", views.load_users_htmx, name="load_users_htmx"),
-]
+] 

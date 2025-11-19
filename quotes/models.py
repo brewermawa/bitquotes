@@ -84,7 +84,7 @@ class Quote(models.Model):
 
     def clean(self):
         #Validar que el contacto sea parte del cliente seleccionado.
-        if self.customer and self.contact:
+        if self.customer_id and self.contact_id:
             if self.contact.customer_id != self.customer_id:
                 raise ValidationError({"contact": "El contacto no es parte del cliente seleccionado"})
 

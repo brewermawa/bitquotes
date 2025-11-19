@@ -7,6 +7,7 @@ from django.urls import reverse_lazy
 from .models import Quote
 from .forms import QuoteForm
 from users.models import CustomUser
+from customers.models import Contact
 
 @login_required
 def dashboard(request):
@@ -32,10 +33,24 @@ class QuoteCreateView(LoginRequiredMixin, CreateView):
         form.instance.created_by = self.request.user
         form.instance.updated_by = self.request.user
 
-        if not self.request.user.profile.is_csr and not self.request_user.profile.is_manager:
+        if not self.request.user.profile.is_csr and not self.request.user.profile.is_manager:
             form.instance.user = self.request.user
 
         return super().form_valid(form)
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        form = context.get("form")
+
+        if form is not None and form.instance.customer_id:
+            context["contacts"] = Contact.objects.filter(
+                customer_id=form.instance.customer_id,
+                is_active=True,
+            ).order_by("first_name", "last_name")
+        else:
+            context["contacts"] = None
+
+        return context
     
 
 def load_users_htmx(request):

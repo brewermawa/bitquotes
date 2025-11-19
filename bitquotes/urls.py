@@ -28,7 +28,6 @@ urlpatterns = [
     path("", include("quotes.urls")),
     path("users/", include("users.urls")),
     path("customers/", include("customers.urls")),
-    path("quotes/", include("quotes.urls")),
 ]
 
 if settings.DEBUG:

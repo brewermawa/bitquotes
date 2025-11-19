@@ -9,6 +9,11 @@ class QuoteForm(forms.ModelForm):
     class Meta:
         model = Quote
         fields = ["customer", "contact", "user", "payment_terms"]
+        error_messages = {
+            "customer": {"required": "Es necesario seleccionar un cliente", },
+            "contact": {"required": "Es necesario seleccionar un contacto", },
+            "user": {"required": "Es necesario seleccionar un usuario", },
+        }
 
     def __init__(self,*args, **kwargs):
         self.request_user = kwargs.pop("user", None)
@@ -28,7 +33,7 @@ class QuoteForm(forms.ModelForm):
 
         if hasattr(self.request_user, "profile") and (self.request_user.profile.is_csr or self.request_user.profile.is_manager):
             # CSR/Manager: pueden asignar a un SalesRep activo
-            self.fields["user"].queryset = CustomUser.objects.filter(profile__position="SALES", is_active=True).order_by("first_name", "last_name", "username")
+            self.fields["user"].queryset = CustomUser.objects.filter(is_active=True).order_by("first_name", "last_name", "username")
         else:
             # Sales u otros: no elige, se asigna a sí mismo (campo oculto)
             if "user" in self.fields:

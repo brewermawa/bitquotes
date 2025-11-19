@@ -33,12 +33,20 @@
       <!-- Campo visible donde el usuario escribe -->
       <input type="search" id="customer-search" class="form-control"
              name="search" placeholder="Buscar cliente por nombre o RFC..."
+             value="{% if form.instance.customer %}{{ form.instance.customer.name }}{% endif %}"
              hx-get="{% url 'customers:customer_search_htmx' %}"
              hx-trigger="keyup changed delay:300ms"
              hx-target="#customer-results"
              hx-indicator="#customer-loading"
              autocomplete="off"
       >
+      {% if form.customer.errors %}
+          <div class="invalid-feedback d-block mt-1">
+              {% for error in form.customer.errors %}
+                  {{ error }}
+              {% endfor %}
+          </div>
+      {% endif %}
 
       <!-- Loader -->
       <div id="customer-loading" class="htmx-indicator mt-1 small text-muted">
@@ -49,18 +57,37 @@
       <div id="customer-results" class="list-group mt-2"></div>
 
       <!-- Hidden input con el cliente seleccionado -->
-      <input type="hidden" name="customer" id="customer-id">
+      <input type="hidden" name="customer" id="customer-id"
+             value="{{ form.instance.customer_id|default_if_none:'' }}">
     </div>
 
     <!-- Contacto -->
     <div id="contact-container">
       <div class="mb-3">
         <label class="form-label fw-semibold">Contacto</label>
-        <select id="id_contact" name="contact" class="form-select" disabled>
+        <select id="id_contact" name="contact" class="form-select" 
+                {% if not form.instance.customer_id %}disabled{% endif %}>
+          {% if form.instance.customer and contacts %}
+          <option value="">Selecciona un contacto…</option>
+          {% for c in contacts %}
+            <option value="{{ c.id }}" {% if form.instance.contact_id == c.id %}selected{% endif %}>
+              {{ c.full_name }}
+            </option>
+          {% endfor %}
+        {% else %}
           <option value="">Selecciona un cliente…</option>
+        {% endif %}
         </select>
+        {% if form.contact.errors %}
+            <div class="invalid-feedback d-block mt-1">
+                {% for error in form.contact.errors %}
+                    {{ error }}
+                {% endfor %}
+            </div>
+        {% endif %}
       </div>
     </div>
+    
 
     <div class="row g-3">
         <!-- ASIGNADO A (HTMX) -->
@@ -71,12 +98,13 @@
                     hx-get="{% url 'quotes:load_users_htmx' %}"
                     hx-trigger="load"
                     hx-target="#id_user"
-                    hx-swap="innerHTML">
-                <option>Cargando usuarios…</option>
+                    hx-swap="innerHTML"
+                    hx-params="none">
+                <option value="">Cargando usuarios…</option>
             </select>
 
             {% if form.user.errors %}
-                <div class="invalid-feedback d-block">
+                <div class="invalid-feedback d-block mt-1">
                     {% for error in form.user.errors %}
                         {{ error }}
                     {% endfor %}
