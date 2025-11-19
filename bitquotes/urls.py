@@ -21,7 +21,7 @@ from django.conf.urls.static import static
 
 admin.site.site_header = "Administración BIT-Quotes"
 admin.site.site_title = "Administración BIT-Quotes"
-admin.site.index_title = "Panel de adminstración BIT-Quotes"
+admin.site.index_title = "Panel de Administración BIT-Quotes"
 
 urlpatterns = [
     path('admin/', admin.site.urls),

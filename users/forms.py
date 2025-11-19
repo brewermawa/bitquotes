@@ -1,6 +1,11 @@
 from django import forms
+from django.contrib.auth.forms import AuthenticationForm
 
 
-class LoginForm(forms.Form):
-    username = forms.CharField()
-    password = forms.CharField(widget=forms.PasswordInput)
+class CustomAuthenticationForm(AuthenticationForm):
+    error_messages = {
+        "invalid_login": "Usuario o contraseña incorrectos.",
+        "inactive": "Esta cuenta está desactivada.",
+    }    
+
+

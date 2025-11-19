@@ -5,13 +5,14 @@ from django.conf import settings
 
 class CustomUser(AbstractUser):
     def __str__(self):
-        return self.get_full_name() or self.username
+        return (self.get_full_name() or self.username).strip()
 
 
 class Profile(models.Model):
     class Meta:
         verbose_name = "Perfil de usuario"
         verbose_name_plural = "Perfiles de usuario"
+        ordering = ["user__first_name", "user__last_name"]
         indexes = [
             models.Index(fields=["role"]),
         ]
@@ -36,12 +37,18 @@ class Profile(models.Model):
     updated = models.DateTimeField(auto_now=True)
 
     def __str__(self):
-        return self.user.get_full_name() or self.user.username
+        return (self.user.get_full_name() or self.user.username).strip()
     
     def formatted_phone(self):
+        if not self.phone:
+            return "-"
+        
         return f"({self.phone[:2]}){self.phone[2:6]}-{self.phone[6:]}"
     
     def formatted_cel_phone(self):
+        if not self.cel_phone:
+            return "-"
+        
         return f"({self.cel_phone[:2]}){self.cel_phone[2:6]}-{self.cel_phone[6:]}"
     
     @property

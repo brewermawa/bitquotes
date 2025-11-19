@@ -137,3 +137,6 @@ AUTH_USER_MODEL = 'users.CustomUser'
 LOGIN_URL = "/users/login/"
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/users/login/'
+
+SESSION_COOKIE_AGE = 15 * 60  
+SESSION_EXPIRE_AT_BROWSER_CLOSE = True
