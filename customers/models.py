@@ -6,6 +6,7 @@ from django.urls import reverse
 
 
 class Customer(models.Model):
+    #TODO: Analizar si el RFC debe ser obligatorio. 
     class Meta:
         verbose_name = "Cliente"
         verbose_name_plural = "Clientes"

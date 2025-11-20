@@ -29,11 +29,13 @@ class CustomerListBase(LoginRequiredMixin, ListView):
                 
         return queryset
 
+    """
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context["users"] = CustomUser.objects.filter(is_active=True)
 
         return context
+    """
     
     def paginate_queryset(self, queryset, page_size):
         paginator = self.get_paginator(queryset, page_size)
@@ -75,6 +77,13 @@ class CustomerCreateView(LoginRequiredMixin, CreateView):
 
         return context
     
+    def form_valid(self, form):
+        form.instance.created_by = self.request.user
+        form.instance.updated_by = self.request.user
+
+        return super().form_valid(form)
+    
+    
 class CustomerDetailView(LoginRequiredMixin, DetailView):
     model = Customer
 
@@ -86,8 +95,7 @@ class CustomerDetailView(LoginRequiredMixin, DetailView):
     
     def get_queryset(self):
         return Customer.objects.select_related("assigned_to").prefetch_related("contacts")
-    
-    
+        
     
 @login_required
 def customer_row_edit(request, pk):
@@ -110,7 +118,6 @@ def customer_row_readonly(request, pk):
     """
     Devuelve SOLO el <tr> en modo lectura para el customer dado.
     """
-    print("Me encanta la verga")
 
     customer = get_object_or_404(Customer.objects.select_related("assigned_to"), pk=pk)
     return render(request, "customers/_customer_row_readonly.html", {
@@ -120,12 +127,6 @@ def customer_row_readonly(request, pk):
 
 @login_required
 def customer_row_update(request, pk):
-    """
-    Procesa el POST de 'Guardar' de la fila editable.
-    - Valida nombre y RFC (formato + unicidad).
-    - Actualiza y devuelve el <tr> en modo lectura si OK.
-    - Si hay errores, devuelve el <tr> en modo edición con mensajes (HTTP 422).
-    """
     if request.method != "POST":
         return HttpResponseBadRequest("Método no permitido")
 
@@ -136,7 +137,6 @@ def customer_row_update(request, pk):
     assigned_to = request.POST.get("assigned_to")
 
     errors = {}
-    # Validaciones básicas
     if not name:
         errors["name"] = "El nombre/razón social es obligatorio."
 
@@ -144,33 +144,40 @@ def customer_row_update(request, pk):
         if not RFC_REGEX.match(rfc):
             errors["rfc"] = "Formato de RFC inválido."
         else:
-            # Unicidad de RFC (excluyendo al propio registro)
             if Customer.objects.exclude(pk=customer.pk).filter(rfc__iexact=rfc).exists():
                 errors["rfc"] = "El RFC ya existe en el sistema."
     else:
-        # Si tu modelo permite RFC vacío, elimina este bloque.
         errors["rfc"] = "El RFC es obligatorio."
 
     if errors:
-        # Responder la MISMA fila en modo edición con errores (422 = Unprocessable Entity)
-        ctx = {"customer": customer, "errors": errors}
-        response = render(request, "customers/_customer_row_edit.html", ctx)
+        customer.name = name
+        customer.rfc = rfc
+        customer.assigned_to_id = assigned_to or None
+        
+        context = {
+            "customer": customer,
+            "errors": errors,
+            "users": CustomUser.objects.filter(is_active=True),
+        }
+        response = render(request, "customers/_customer_row_edit.html", context)
+
         return response
 
     # Persistir cambios
     customer.name = name
     customer.rfc = rfc
-    customer.assigned_to = CustomUser.objects.get(id=assigned_to)
+    print("---" + assigned_to)
+    customer.assigned_to = CustomUser.objects.get(pk=assigned_to)
 
     # Opcional: si llevas auditoría
-    if hasattr(customer, "updated_by_id"):
+    if hasattr(customer, "updated_by"):
         customer.updated_by_id = request.user.id
-    customer.save(update_fields=["name", "rfc", "assigned_to"] + (["updated_by"] if hasattr(customer, "updated_by") else []))
 
-    # Devolver la fila en modo lectura
+    customer.save(update_fields=["name", "rfc", "assigned_to", "updated_by"])
+
     customer.refresh_from_db()
-    ctx = {"customer": customer}
-    response = render(request, "customers/_customer_row_readonly.html", ctx)
+    context = {"customer": customer}
+    response = render(request, "customers/_customer_row_readonly.html", context)
 
     response["HX-Trigger"] = json.dumps({
         "toast": {
@@ -201,6 +208,8 @@ class ContactCreateView(LoginRequiredMixin, CreateView):
     
     def form_valid(self, form):
         form.instance.customer = self.customer
+        form.instance.created_by = self.request.user
+        form.instance.updated_by = self.request.user
 
         return super().form_valid(form)
     
@@ -225,6 +234,11 @@ class ContactUpdateView(LoginRequiredMixin, UpdateView):
         context["customer"] = self.customer
 
         return context
+    
+    def form_valid(self, form):
+        form.instance.updated_by = self.request.user
+
+        return super().form_valid(form)
     
     def get_success_url(self):
         return self.customer.get_absolute_url()

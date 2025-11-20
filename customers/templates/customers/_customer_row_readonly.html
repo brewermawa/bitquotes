@@ -14,7 +14,11 @@
     <!-- Asignado a -->
     <td style="min-width:200px;">
         <i class="bi bi-person-circle me-1"></i>
-        {{ customer.assigned_to.get_full_name|default:customer.assigned_to.username }}
+        {% if customer.assigned_to %}
+            {{ customer.assigned_to.get_full_name|default:customer.assigned_to.username }}
+        {% else %}
+            <span class="text-muted">Sin asignar</span>
+        {% endif %}
     </td>
 
     <!-- Acciones -->

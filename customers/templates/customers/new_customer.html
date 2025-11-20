@@ -41,7 +41,7 @@
                             <input type="text"
                                 name="{{ form.name.name }}"
                                 value="{{ form.name.value|default_if_none:'' }}"
-                                maxlength="120"
+                                maxlength="100"
                                 required
                                 class="form-control {% if form.name.errors %}is-invalid{% endif %}"
                                 placeholder="Ej. ACME, S.A. de C.V."
@@ -72,7 +72,7 @@
                                     {% for e in form.rfc.errors %}{{ e }}{% endfor %}
                                 </div>
                             {% else %}
-                                <div class="form-text">EL RFC debe ser único y con formato válido.</div>
+                                <div class="form-text">El RFC debe ser único y con formato válido.</div>
                             {% endif %}
                         </div>
 
@@ -83,7 +83,8 @@
                             <select name="{{ form.assigned_to.name }}"
                                     class="form-select {% if form.assigned_to.errors %}is-invalid{% endif %}">
                                 {% for u in users %}
-                                    <option value="{{ u.id }}" {% if u.id == user.id %}selected{% endif %}>
+                                    <option value="{{ u.id }}"
+                                        {% if form.assigned_to.value == u.id|stringformat:'s' %}selected{% endif %}>
                                         {{ u.get_full_name|default:u.username }}
                                     </option>
                                 {% endfor %}

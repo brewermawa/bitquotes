@@ -21,7 +21,7 @@
 {% endblock content_header %}
 
 {% block content %}
-    <form class="row g-2 align-items-end mb-3"
+    <form method="get" class="row g-2 align-items-end mb-3"
           hx-get="{% url 'customers:customer_list_partial' %}"
           hx-trigger="keyup changed delay:300ms from:#q, submit"
           hx-target="#customers-table"
@@ -31,7 +31,7 @@
             <label class="form-label">Buscar (nombre o RFC)</label>
             <div class="input-group">
                 <span class="input-group-text"><i class="bi bi-search"></i></span>
-                <input id="q" type="search" class="form-control" name="q" value="{{ request.GET.q }}" placeholder="Nombre o razón social" autofocus>
+                <input id="q" type="search" class="form-control" name="q" value="{{ request.GET.q|default_if_none:'' }}" placeholder="Nombre o razón social" autofocus>
             </div>
         </div>
 

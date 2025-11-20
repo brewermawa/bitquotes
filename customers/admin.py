@@ -12,15 +12,15 @@ class ContactInline(admin.StackedInline):
 
 @admin.register(Customer)
 class CustomerAdmin(admin.ModelAdmin):
-    @admin.display(description="Nombre")
-    def name(self, obj):
+    @admin.display(description="Nombre", ordering="name")
+    def display_name(self, obj):
         return obj.name
     
     @admin.display(description="RFC", ordering="rfc")
     def formatted_rfc(self, obj):
         return obj.formatted_rfc()
     
-    list_display = ["name", "formatted_rfc", "assigned_to"]
+    list_display = ["display_name", "formatted_rfc", "assigned_to"]
     list_editable = ["assigned_to"]
     list_filter = [("assigned_to", admin.RelatedOnlyFieldListFilter)]
     search_fields = ["name", "rfc"]
@@ -40,3 +40,16 @@ class CustomerAdmin(admin.ModelAdmin):
         obj.updated_by = request.user
 
         return super().save_model(request, obj, form, change)
+
+    def save_formset(self, request, form, formset, change):
+        instances = formset.save(commit=False)
+
+        for instance in instances:
+            if hasattr(instance, "created_by") and instance.pk is None:
+                instance.created_by = request.user
+
+            if hasattr(instance, "updated_by"):
+                instance.updated_by = request.user
+
+            instance.save()
+        formset.save_m2m()
