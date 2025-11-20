@@ -25,12 +25,14 @@ class Customer(models.Model):
     assigned_to = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Vendedor", related_name="assigned_customers")
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
-    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, null=True, related_name="created_customers")
-    updated_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, null=True, related_name="updated_customers")
+    created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, null=True, related_name="created_customers", verbose_name="Creado por")
+    updated_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, null=True, related_name="updated_customers", verbose_name="Modificado por")
 
     def clean(self):
         super().clean()
-        self.rfc =self.rfc.upper()
+
+        if self.rfc:
+            self.rfc = self.rfc.upper().strip()
 
     def save(self, *args, **kwargs):
         if not self.slug:
@@ -96,13 +98,13 @@ class Contact(models.Model):
         if self.phone:
             return f"({self.phone[0:2]}){self.phone[2:6]}-{self.phone[6:]}"
 
-        return ""
+        return "-"
     
     def formatted_cel_phone(self):
         if self.cel_phone:
             return f"({self.cel_phone[0:2]}){self.cel_phone[2:6]}-{self.cel_phone[6:]}"
 
-        return ""
+        return "-"
     
     def save(self, *args, **kwargs):
         if self.first_name:
@@ -113,6 +115,9 @@ class Contact(models.Model):
 
         if self.title:
             self.title = self.title.title().strip()
+
+        if self.email:
+            self.email = self.email.strip().lower()
 
         super().save(*args, **kwargs)
             

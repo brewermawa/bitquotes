@@ -5,25 +5,27 @@ from django.core.validators import FileExtensionValidator
 
 
 def document_upload_path(instance, filename):
-        sku = instance.product.sku.replace(" ", "_")
-        return f"documents/{sku}/{filename}"
+    sku = instance.product.sku.replace(" ", "_")
+
+    return f"documents/{sku}/{filename}"
 
 class Category(models.Model):
     class Meta:
         verbose_name = "Categoría"
         verbose_name_plural = "Categorías"
-        indexes = [models.Index(fields=["name"]),]
+        indexes = [
+            models.Index(fields=["name"]),
+        ]
 
     name = models.CharField(max_length=30, unique=True, verbose_name="Categoría")
-    is_active = models.BooleanField(default=True)
+    is_active = models.BooleanField(default=True, verbose_name="Activa")
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
     created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, null=True, related_name="created_categories", verbose_name="Creado por")
     updated_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, null=True, related_name="updated_categories", verbose_name="Modificado por")
 
     def save(self, *args, **kwargs):
-        if self.pk: #only runs when editing a category, not when saving a new one
-            #gets the category from the database (only the is_active field)
+        if self.pk: 
             old_is_active = Category.objects.filter(pk=self.pk).only("is_active").first()
 
             if old_is_active and not self.is_active:
@@ -61,7 +63,7 @@ class Product(models.Model):
     product_type = models.CharField(max_length=3, choices=ProductType.choices, default=ProductType.CONSUMIBLE, verbose_name="Tipo de producto")
     category = models.ForeignKey(Category, on_delete=models.PROTECT, related_name="products")
     related_product = models.ManyToManyField("self", symmetrical=False, through="RelatedProduct", related_name="related_products")
-    is_active = models.BooleanField(default=True)
+    is_active = models.BooleanField(default=True, verbose_name="Activo")
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
     created_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, null=True, related_name="created_products", verbose_name="Creado por")
@@ -76,6 +78,8 @@ class Product(models.Model):
 
         if self.price is not None and self.price <= 0:
             raise ValidationError({"price": "El precio debe ser mayor a 0."})
+        
+        return super().clean()
 
     def __str__(self):
         return f"{self.sku} - {self.name}"
@@ -87,15 +91,42 @@ class RelatedProduct(models.Model):
     class Meta:
         verbose_name = "Producto relacionado"
         verbose_name_plural = "Productos relacionados"
+        ordering = ["product", "related_product"]
         constraints = [
-            models.UniqueConstraint(fields=["product", "related_product"], name="product-related-unique")
+            models.UniqueConstraint(fields=["product", "related_product"], name="product_related_unique"),
+            models.CheckConstraint(
+                check=~models.Q(product=models.F("related_product")),
+                name="related_product_not_self",
+            )
         ]
 
-    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name="related_links")
+    product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name="related_links", verbose_name="Producto")
     related_product = models.ForeignKey(Product, on_delete=models.CASCADE, related_name="reverse_links", verbose_name="Producto relacionado")
+    created = models.DateTimeField(auto_now_add=True)
+    updated = models.DateTimeField(auto_now=True)
+    created_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.PROTECT,
+        null=True,
+        related_name="created_related_products",
+        verbose_name="Creado por",
+    )
+    updated_by = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        on_delete=models.PROTECT,
+        null=True,
+        related_name="updated_related_products",
+        verbose_name="Modificado por",
+    )
 
     def __str__(self):
         return f"{self.product.sku} > {self.related_product.sku}"
+    
+    def clean(self):
+        if (self.product_id and self.related_product_id) and (self.product_id == self.related_product_id):
+            raise ValidationError("Un producto no puede estar relacionado consigo mismo.")
+        
+        return super().clean()
     
 
 class ProductDocument(models.Model):
@@ -131,6 +162,8 @@ class ProductDocument(models.Model):
 
     def clean(self):
         self.name = self.name.strip()
+
+        return super().clean()
 
     def __str__(self):
         return f"{self.product.sku} - {self.name}"
