@@ -7,8 +7,15 @@ app_name = "quotes"
 urlpatterns = [
     path("", views.dashboard, name="dashboard"),
     path("list/", views.quote_list, name="quote_list"),
-    path("new/", views.QuoteCreateView.as_view(), name="quote_create"),
-    path("<int:pk>/", views.dashboard, name="quote_detail"),
-    path("<int:pk>/edit", views.dashboard, name="quote_edit"),
+    
+    # PASO 1: encabezado de cotización
+    path("new/", views.QuoteHeadCreateView.as_view(), name="quote_create"),
+
+    # PASO 2: Agregar líneas a cotización o editar cotización
+    path("<int:pk>/edit/", views.quote_edit, name="quote_edit"),
+
+    # Ver detalles de cotización
+    path("<int:pk>/", views.quote_detail, name="quote_detail"),
+    
     path("load-users-htmx/", views.load_users_htmx, name="load_users_htmx"),
 ] 

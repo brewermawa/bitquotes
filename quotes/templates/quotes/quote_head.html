@@ -26,6 +26,18 @@
   <form method="post" class="card shadow-sm p-4" novalidate>
     {% csrf_token %}
 
+    {% if form.non_field_errors %}
+      <div class="alert alert-danger">
+        {{ form.non_field_errors }}
+      </div>
+    {% endif %}
+
+    {% if form.errors %}
+      <div class="alert alert-warning">
+        {{ form.errors }}
+      </div>
+    {% endif %}
+
     <!-- Cliente -->
     <div class="mb-3">
       <label class="form-label fw-semibold">Cliente</label>
@@ -88,45 +100,27 @@
       </div>
     </div>
     
+    <div class="mb-3">
+      <label class="form-label fw-semibold">Asignado a</label>
 
-    <div class="row g-3">
-        <!-- ASIGNADO A (HTMX) -->
-        <div class="col-12 col-md-6">
-            <label class="form-label fw-semibold">Asignado a</label>
+      <select name="user" id="id_user"class="form-select"
+              hx-get="{% url 'quotes:load_users_htmx' %}"
+              hx-trigger="load"
+              hx-target="#id_user"
+              hx-swap="innerHTML"
+              hx-params="none">
+          <option value="">Cargando usuarios…</option>
+      </select>
 
-            <select name="user" id="id_user"class="form-select"
-                    hx-get="{% url 'quotes:load_users_htmx' %}"
-                    hx-trigger="load"
-                    hx-target="#id_user"
-                    hx-swap="innerHTML"
-                    hx-params="none">
-                <option value="">Cargando usuarios…</option>
-            </select>
-
-            {% if form.user.errors %}
-                <div class="invalid-feedback d-block mt-1">
-                    {% for error in form.user.errors %}
-                        {{ error }}
-                    {% endfor %}
-                </div>
-            {% endif %}
-        </div>
-
-        <!-- TÉRMINOS DE PAGO (normal) -->
-        <div class="col-12 col-md-6">
-            <label for="{{ form.payment_terms.id_for_label }}" class="form-label fw-semibold">
-                Términos de pago
-            </label>
-            {{ form.payment_terms|add_class:"form-select" }}
-            {% if form.payment_terms.errors %}
-                <div class="invalid-feedback d-block">
-                    {% for error in form.payment_terms.errors %}
-                        {{ error }}
-                    {% endfor %}
-                </div>
-            {% endif %}
-        </div>
+      {% if form.user.errors %}
+          <div class="invalid-feedback d-block mt-1">
+              {% for error in form.user.errors %}
+                  {{ error }}
+              {% endfor %}
+          </div>
+      {% endif %}
     </div>
+
 
     <hr class="my-4">
 

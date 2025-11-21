@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+{% block title %} - Editar cotización {{ quote.id }}{% endblock %}
+{% block nav_active_cotizaciones %}active{% endblock %}
+
+{% block content_header %}
+  <div class="d-flex align-items-end justify-content-between mt-3 mb-2">
+    <div>
+      <h1 class="h4 mb-2 d-flex align-items-center gap-2">
+        <i class="bi bi-pencil-square"></i> Editar cotización #{{ quote.id }}
+      </h1>
+      <small class="text-muted">
+        Cliente: {{ quote.customer.name }}
+        {% if quote.contact %} — Contacto: {{ quote.contact.full_name }}{% endif %}
+      </small>
+    </div>
+    <div>
+      <a href="{% url 'quotes:quote_list' %}" class="btn btn-outline-secondary d-flex align-items-center gap-2">
+        <i class="bi bi-arrow-left"></i><span>Regresar</span>
+      </a>
+    </div>
+  </div>
+  <hr class="mt-2 mb-3">
+{% endblock content_header %}
+
+{% block content %}
+  <p>Aquí vamos a agregar las líneas de la cotización (productos, cantidades, etc.).</p>
+{% endblock content %}

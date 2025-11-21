@@ -5,10 +5,10 @@ from customers.models import Contact
 from users.models import CustomUser
 
 
-class QuoteForm(forms.ModelForm):
+class QuoteHeadForm(forms.ModelForm):
     class Meta:
         model = Quote
-        fields = ["customer", "contact", "user", "payment_terms"]
+        fields = ["customer", "contact", "user"]
         error_messages = {
             "customer": {"required": "Es necesario seleccionar un cliente", },
             "contact": {"required": "Es necesario seleccionar un contacto", },
@@ -16,6 +16,7 @@ class QuoteForm(forms.ModelForm):
         }
 
     def __init__(self,*args, **kwargs):
+        print("FORM init")
         self.request_user = kwargs.pop("user", None)
         super().__init__(*args, **kwargs)
 
@@ -45,6 +46,7 @@ class QuoteForm(forms.ModelForm):
         Validación amistosa: el contacto debe pertenecer al cliente elegido.
         (Tu modelo ya lo valida en clean(), pero esto mejora el mensaje en el form.)
         """
+        print("FORM clean")
         cleaned = super().clean()
         customer = cleaned.get("customer")
         contact = cleaned.get("contact")
