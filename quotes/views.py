@@ -1,11 +1,11 @@
-from django.shortcuts import render, redirect, get_object_or_404
+from django.shortcuts import render, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.views.generic import ListView, CreateView
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.urls import reverse_lazy
+from django.urls import reverse_lazy, reverse
 
-from .models import Quote
-from .forms import QuoteHeadForm
+from .models import Quote, QuoteLine
+from .forms import QuoteHeadForm, QuotePaymentTermsForm, QuoteLineForm
 from users.models import CustomUser
 from customers.models import Contact
 
@@ -37,10 +37,13 @@ class QuoteHeadCreateView(LoginRequiredMixin, CreateView):
             form.instance.user = self.request.user
 
         print("***********************")
+        response = super().form_valid(form)
+        print("---", self.object.pk)
 
-        #response = super().form_valid(form)
-
-        return redirect("quotes:quote_edit", pk=self.object.pk)
+        return response
+    
+    def get_success_url(self):
+        return reverse("quotes:quote_edit", kwargs={"pk": self.object.pk})
         
     
     def get_context_data(self, **kwargs):
@@ -68,14 +71,24 @@ class QuoteHeadCreateView(LoginRequiredMixin, CreateView):
 @login_required
 def quote_edit(request, pk):
     quote = get_object_or_404(Quote, pk=pk)
-    return render(request, "quotes/quote_detail.html", {
-        "quote": quote
+    quote_line_form = QuoteLineForm()
+    payment_terms_form = QuotePaymentTermsForm(instance=quote)
+
+    lines = QuoteLine.objects.filter(quote=quote)
+
+    return render(request, "quotes/quote_edit.html", {
+        "quote_line_form": quote_line_form,
+        "payment_terms_form": payment_terms_form,
+        "quote": quote,
+        "lines": lines,
     })
 
 @login_required
 def quote_detail(request, pk):
+
     quote = get_object_or_404(Quote, pk=pk)
-    return render(request, "quotes/quote_edit.html", {
+
+    return render(request, "quotes/quote_detail.html", {
         "quote": quote
     })
     

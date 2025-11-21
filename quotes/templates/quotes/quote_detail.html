@@ -1,0 +1,211 @@
+{% extends "base.html" %}
+
+{% block title %} - Detalle cotización {{ quote.id }}{% endblock %}
+{% block nav_active_cotizaciones %}active{% endblock %}
+
+{% block content_header %}
+  <div class="d-flex align-items-end justify-content-between mt-3 mb-2">
+    <div>
+      <h1 class="h4 mb-1 d-flex align-items-center gap-2">
+        <i class="bi bi-receipt"></i> Detalle de cotización
+      </h1>
+
+      {# Número de cotización, ej. BIT-MG-251029-00009 #}
+      <div class="mb-1">
+        <span class="badge bg-light text-dark border">
+          {{ quote.quote_id }}
+        </span>
+      </div>
+
+      <small class="text-muted d-block">
+        Cliente: {{ quote.customer.name }}
+        {% if quote.contact %}
+          — Contacto: {{ quote.contact.full_name }}
+        {% endif %}
+      </small>
+
+      {% if quote.user %}
+        <small class="text-muted d-block">
+          Asignado a: {{ quote.user.get_full_name|default:quote.user.username }}
+        </small>
+      {% endif %}
+
+      {# Términos de pago #}
+      <small class="text-muted d-block">
+        Términos de pago:
+        <strong>{{ quote.get_payment_terms_display }}</strong>
+      </small>
+      ---
+      <form action="">
+        {% csrf_token %}
+        {{ payment_terms_form.as_p }}
+      </form>
+      ---
+    </div>
+
+    <div class="text-end">
+      <a href="{% url 'quotes:quote_list' %}" class="btn btn-outline-secondary d-flex align-items-center gap-2">
+        <i class="bi bi-arrow-left"></i><span>Regresar</span>
+      </a>
+    </div>
+  </div>
+  <hr class="mt-2 mb-3">
+{% endblock content_header %}
+
+{% block content %}
+
+  {# Errores del form de línea #}
+  {% if line_form.non_field_errors %}
+    <div class="alert alert-danger">
+      {{ line_form.non_field_errors }}
+    </div>
+  {% endif %}
+
+  <form method="post" class="card shadow-sm p-4">
+    {% csrf_token %}
+
+    <h2 class="h5 mb-3 d-flex align-items-center gap-2">
+      <i class="bi bi-list-ol"></i> Líneas de cotización
+    </h2>
+
+    <div class="table-responsive">
+      <table class="table table-sm align-middle">
+        <thead class="table-light">
+          <tr>
+            <th style="width: 40px;">#</th>
+            <th style="width: 140px;">Núm. de parte</th>
+            <th>Nombre producto</th>
+            <th style="width: 100px;" class="text-end">Cantidad</th>
+            <th style="width: 140px;" class="text-end">Precio unitario</th>
+            <th style="width: 120px;" class="text-end">Descuento</th>
+            <th style="width: 140px;" class="text-end">Subtotal línea</th>
+          </tr>
+        </thead>
+        <tbody>
+          {# Líneas ya guardadas #}
+          {% if lines %}
+            {% for line in lines %}
+              <tr>
+                <td>{{ forloop.counter }}</td>
+                <td>{{ line.num_part }}</td> {# ajusta al nombre real del campo #}
+                <td>{{ line.product_name }}</td> {# ajusta al nombre real #}
+                <td class="text-end">{{ line.quantity }}</td>
+                <td class="text-end">
+                  {{ line.unit_price|floatformat:2 }}
+                </td>
+                <td class="text-end">
+                  {% if line.discount %}
+                    {{ line.discount }}%
+                  {% else %}
+                    0%
+                  {% endif %}
+                </td>
+                <td class="text-end">
+                  {{ line.subtotal|floatformat:2 }}
+                </td>
+              </tr>
+            {% endfor %}
+          {% else %}
+            <tr>
+              <td colspan="7" class="text-muted text-center py-3">
+                Aún no hay productos en esta cotización. Agrega la primera línea abajo.
+              </td>
+            </tr>
+          {% endif %}
+
+          {# Fila de captura de nueva línea #}
+          <tr class="table-secondary">
+            <td class="fw-semibold">
+              {% if lines %}
+                {{ lines|length|add:"1" }}
+              {% else %}
+                1
+              {% endif %}
+            </td>
+
+            <td>
+              {{ line_form.num_part }}
+              {% if line_form.num_part.errors %}
+                <div class="invalid-feedback d-block">
+                  {{ line_form.num_part.errors.0 }}
+                </div>
+              {% endif %}
+            </td>
+
+            <td>
+              {{ line_form.product_name }}
+              {% if line_form.product_name.errors %}
+                <div class="invalid-feedback d-block">
+                  {{ line_form.product_name.errors.0 }}
+                </div>
+              {% endif %}
+            </td>
+
+            <td>
+              <div class="text-end">
+                {{ line_form.quantity }}
+              </div>
+              {% if line_form.quantity.errors %}
+                <div class="invalid-feedback d-block text-end">
+                  {{ line_form.quantity.errors.0 }}
+                </div>
+              {% endif %}
+            </td>
+
+            <td>
+              <div class="text-end">
+                {{ line_form.unit_price }}
+              </div>
+              {% if line_form.unit_price.errors %}
+                <div class="invalid-feedback d-block text-end">
+                  {{ line_form.unit_price.errors.0 }}
+                </div>
+              {% endif %}
+            </td>
+
+            <td>
+              <div class="text-end">
+                {{ line_form.discount }}
+              </div>
+              {% if line_form.discount.errors %}
+                <div class="invalid-feedback d-block text-end">
+                  {{ line_form.discount.errors.0 }}
+                </div>
+              {% endif %}
+            </td>
+
+            <td class="text-end text-muted">
+              {# El subtotal de la nueva línea se calculará al guardar.
+                 Aquí solo mostramos un placeholder. #}
+              —
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    {# Total de la cotización (si ya lo calculas en la vista) #}
+    {% if quote.total %}
+      <div class="d-flex justify-content-end mt-2">
+        <div class="text-end">
+          <div class="small text-muted">Total cotización</div>
+          <div class="fs-5 fw-semibold">
+            {{ quote.total|floatformat:2 }}
+          </div>
+        </div>
+      </div>
+    {% endif %}
+
+    <hr class="my-4">
+
+    <div class="d-flex justify-content-end gap-2">
+      <button type="submit" name="action" value="finish" class="btn btn-outline-primary">
+        <i class="bi bi-check2-circle"></i> Guardar detalle y salir
+      </button>
+      <button type="submit" name="action" value="add" class="btn btn-primary">
+        <i class="bi bi-plus-circle"></i> Guardar línea y agregar otra
+      </button>
+    </div>
+  </form>
+
+{% endblock content %}

@@ -139,51 +139,51 @@
                 crossorigin="anonymous">
         </script>
         <script>
-  document.addEventListener('DOMContentLoaded', function () {
-    // Elementos del toast
-    const toastEl = document.getElementById('app-toast');
-    const toastText = document.getElementById('app-toast-text');
+            document.addEventListener('DOMContentLoaded', function () {
+                // Elementos del toast
+                const toastEl = document.getElementById('app-toast');
+                const toastText = document.getElementById('app-toast-text');
 
-    // Guardrails: verifica que existan y que Bootstrap esté cargado
-    if (!toastEl) {
-      console.warn('[toast] No se encontró #app-toast en el DOM');
-      return;
-    }
-    if (!window.bootstrap || !bootstrap.Toast) {
-      console.warn('[toast] Bootstrap Toast no está disponible');
-      return;
-    }
+                // Guardrails: verifica que existan y que Bootstrap esté cargado
+                if (!toastEl) {
+                console.warn('[toast] No se encontró #app-toast en el DOM');
+                return;
+                }
+                if (!window.bootstrap || !bootstrap.Toast) {
+                console.warn('[toast] Bootstrap Toast no está disponible');
+                return;
+                }
 
-    // Instancia reutilizable
-    const toast = bootstrap.Toast.getOrCreateInstance(toastEl, { delay: 3000 });
+                // Instancia reutilizable
+                const toast = bootstrap.Toast.getOrCreateInstance(toastEl, { delay: 3000 });
 
-    // Función para ajustar color según nivel
-    function setToastLevel(level) {
-      toastEl.classList.remove('text-bg-success', 'text-bg-danger', 'text-bg-warning', 'text-bg-info');
-      switch ((level || 'success').toLowerCase()) {
-        case 'danger':
-        case 'error': toastEl.classList.add('text-bg-danger'); break;
-        case 'warning': toastEl.classList.add('text-bg-warning'); break;
-        case 'info': toastEl.classList.add('text-bg-info'); break;
-        default: toastEl.classList.add('text-bg-success'); break;
-      }
-    }
+                // Función para ajustar color según nivel
+                function setToastLevel(level) {
+                toastEl.classList.remove('text-bg-success', 'text-bg-danger', 'text-bg-warning', 'text-bg-info');
+                switch ((level || 'success').toLowerCase()) {
+                    case 'danger':
+                    case 'error': toastEl.classList.add('text-bg-danger'); break;
+                    case 'warning': toastEl.classList.add('text-bg-warning'); break;
+                    case 'info': toastEl.classList.add('text-bg-info'); break;
+                    default: toastEl.classList.add('text-bg-success'); break;
+                }
+                }
 
-    // Listener del evento que dispara HTMX vía header HX-Trigger
-    document.body.addEventListener('toast', function (e) {
-      const detail = e.detail || {};
-      console.log('[toast] evento recibido:', detail);
+                // Listener del evento que dispara HTMX vía header HX-Trigger
+                document.body.addEventListener('toast', function (e) {
+                const detail = e.detail || {};
+                console.log('[toast] evento recibido:', detail);
 
-      setToastLevel(detail.level);
-      toastText.textContent = detail.message || 'Operación realizada';
-      toast.show();
-    });
+                setToastLevel(detail.level);
+                toastText.textContent = detail.message || 'Operación realizada';
+                toast.show();
+                });
 
-    //Botón de prueba (opcional): descomenta para probar rápido
-    //document.body.dispatchEvent(new CustomEvent('toast', { detail: { message: 'Prueba de toast', level: 'info' } }));
-  });
-</script>
+                //Botón de prueba (opcional): descomenta para probar rápido
+                //document.body.dispatchEvent(new CustomEvent('toast', { detail: { message: 'Prueba de toast', level: 'info' } }));
+            });
+        </script>
 
-        {% block scripts %}{% endblock scripts %}
+        {% block extra_js %}{% endblock extra_js %}
     </body>
 </html>

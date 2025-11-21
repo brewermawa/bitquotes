@@ -1,6 +1,6 @@
 from django import forms
 
-from .models import Quote
+from .models import Quote, QuoteLine
 from customers.models import Contact
 from users.models import CustomUser
 
@@ -55,3 +55,28 @@ class QuoteHeadForm(forms.ModelForm):
             self.add_error("contact", "El contacto no pertenece al cliente seleccionado.")
             
         return cleaned
+
+class QuotePaymentTermsForm(forms.ModelForm):
+    class Meta:
+        model = Quote
+        fields = ["payment_terms"]
+        widgets = {
+            "payment_terms": forms.Select(
+                attrs={
+                    "class": "form-select form-select-sm",
+                }
+            )
+        }
+
+class QuoteLineForm(forms.ModelForm):
+    class Meta:
+        model = QuoteLine
+        fields = [
+            "product",
+            "description",
+            "quantity",
+            "unit_price",
+            "discount",
+            "delivery_time"
+        ]    
+    
