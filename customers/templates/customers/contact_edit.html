@@ -45,7 +45,7 @@
                                 <input type="text"
                                        name="{{ form.first_name.name }}"
                                        value="{{ form.first_name.value|default_if_none:'' }}"
-                                       maxlength="80"
+                                       maxlength="30"
                                        required
                                        autofocus
                                        class="form-control {% if form.first_name.errors %}is-invalid{% endif %}"
@@ -61,7 +61,7 @@
                                 <input type="text"
                                        name="{{ form.last_name.name }}"
                                        value="{{ form.last_name.value|default_if_none:'' }}"
-                                       maxlength="120"
+                                       maxlength="30"
                                        required
                                        class="form-control {% if form.last_name.errors %}is-invalid{% endif %}"
                                        placeholder="Ej. López García">
@@ -79,7 +79,7 @@
                             <input type="text"
                                    name="{{ form.title.name }}"
                                    value="{{ form.title.value|default_if_none:'' }}"
-                                   maxlength="80"
+                                   maxlength="30"
                                    class="form-control {% if form.title.errors %}is-invalid{% endif %}"
                                    placeholder="Ej. Compras / Arquitecta">
                             {% if form.title.errors %}
@@ -109,18 +109,18 @@
                         <div class="row">
                             <div class="col-md-5 mb-3">
                                 <label class="form-label">Teléfono</label>
-                                <input type="text"
-                                    name="{{ form.phone.name }}"
-                                    value="{{ form.phone.value|default_if_none:'' }}"
-                                    class="form-control {% if form.phone.errors %}is-invalid{% endif %}"
-                                    placeholder="81-0000-0000">
+                                <input type="text" inputmode="numeric" pattern="\d{10}"
+                                       name="{{ form.phone.name }}"
+                                       value="{{ form.phone.value|default_if_none:'' }}"
+                                       class="form-control {% if form.phone.errors %}is-invalid{% endif %}"
+                                       placeholder="10 dígitos">
                                 {% if form.phone.errors %}
                                     <div class="invalid-feedback">{% for e in form.phone.errors %}{{ e }}{% endfor %}</div>
                                 {% endif %}
                             </div>
                             <div class="col-md-2 mb-3">
                                 <label class="form-label">Extensión</label>
-                                <input type="text"
+                                <input type="text" inputmode="numeric"
                                     name="{{ form.phone_extension.name }}"
                                     value="{{ form.phone_extension.value|default_if_none:'' }}"
                                     class="form-control {% if form.phone_extension.errors %}is-invalid{% endif %}"
@@ -131,11 +131,11 @@
                             </div>
                             <div class="col-md-5 mb-3">
                                 <label class="form-label">Celular</label>
-                                <input type="text"
+                                <input type="text" inputmode="numeric" pattern="\d{10}"
                                        name="{{ form.cel_phone.name }}"
                                        value="{{ form.cel_phone.value|default_if_none:'' }}"
                                        class="form-control {% if form.cel_phone.errors %}is-invalid{% endif %}"
-                                       placeholder="Ej. 81-0000-0000">
+                                       placeholder="10 dígitos">
                                 {% if form.cel_phone.errors %}
                                     <div class="invalid-feedback">
                                         {% for e in form.cel_phone.errors %}{{ e }}{% endfor %}

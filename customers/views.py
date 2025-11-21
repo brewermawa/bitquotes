@@ -224,6 +224,7 @@ class ContactUpdateView(LoginRequiredMixin, UpdateView):
         "cel_phone", "email", "is_active"
     ]
     template_name = "customers/contact_edit.html"
+    context_object_name = "contact"
 
     def dispatch(self, request, *args, **kwargs):
         self.customer = get_object_or_404(Customer, slug=kwargs["slug"])

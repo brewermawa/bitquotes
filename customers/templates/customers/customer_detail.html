@@ -21,9 +21,9 @@
         </div>
     </div>
     <hr class="mt-2 mb-3">
-    {% endblock content_header %}
+{% endblock content_header %}
 
-    {% block content %}
+{% block content %}
     <div class="row g-3">
         <!-- Tarjeta: info del cliente -->
         <div class="col-12 col-lg-4">
@@ -39,8 +39,11 @@
 
                     <dt class="col-5">Asignado a</dt>
                     <dd class="col-7">
-                    <i class="bi bi-person-circle me-1"></i>
-                    {{ customer.assigned_to.get_full_name|default:customer.assigned_to.username }}
+                        {% if customer.assigned_to %}
+                            {{ customer.assigned_to.get_full_name|default:customer.assigned_to.username }}
+                        {% else %}
+                            <span class="text-muted">Sin asignar</span>
+                        {% endif %}
                     </dd>
                 </dl>
             </div>
@@ -75,7 +78,7 @@
                                             <td class="fw-semibold">{{ c.full_name }}</td>
                                             <td>
                                                 {% if c.email %}
-                                                    <a href="mailto:{{ c.email }}">{{ c.email }}</a>
+                                                    {{ c.email }}
                                                 {% else %}
                                                     <span class="text-muted">—</span>
                                                 {% endif %}

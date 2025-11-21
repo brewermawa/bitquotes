@@ -6,7 +6,7 @@
       <option value="">Selecciona un contacto…</option>
       {% for contact in contacts %}
         <option value="{{ contact.id }}">
-          {{ contact.full_name|default:contact.first_name }}{% if contact.last_name %} {{ contact.last_name }}{% endif %}
+          {{ contact.full_name }}
         </option>
       {% endfor %}
     </select>

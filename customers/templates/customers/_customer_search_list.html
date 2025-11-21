@@ -6,7 +6,7 @@
        hx-swap="innerHTML"
        hx-on:click="
           document.getElementById('customer-id').value = '{{ c.id }}';
-          document.getElementById('customer-search').value = '{{ c.name }}';
+          document.getElementById('customer-search').value = '{{ c.name|escapejs }}';
           document.getElementById('customer-results').innerHTML = '';
        ">
         <div class="fw-semibold">{{ c.name }}</div>
