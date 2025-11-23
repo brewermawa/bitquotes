@@ -3,11 +3,14 @@ from django.contrib.auth.decorators import login_required
 from django.views.generic import ListView, CreateView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.urls import reverse_lazy, reverse
+from django.http import HttpResponseBadRequest
+from django.db.models import Q
 
 from .models import Quote, QuoteLine
 from .forms import QuoteHeadForm, QuotePaymentTermsForm, QuoteLineForm
 from users.models import CustomUser
 from customers.models import Contact
+from catalog.models import Product
 
 @login_required
 def dashboard(request):
@@ -50,8 +53,6 @@ class QuoteHeadCreateView(LoginRequiredMixin, CreateView):
         context = super().get_context_data(**kwargs)
         form = context.get("form")
 
-        print("------------------------")
-
         customer_id = None
         if self.request.method == "POST":
             customer_id = self.request.POST.get("customer")
@@ -73,6 +74,7 @@ def quote_edit(request, pk):
     quote = get_object_or_404(Quote, pk=pk)
     quote_line_form = QuoteLineForm()
     payment_terms_form = QuotePaymentTermsForm(instance=quote)
+    discount_choices = QuoteLine.Discount.choices
 
     lines = QuoteLine.objects.filter(quote=quote)
 
@@ -81,6 +83,7 @@ def quote_edit(request, pk):
         "payment_terms_form": payment_terms_form,
         "quote": quote,
         "lines": lines,
+        "discount_choices": discount_choices,
     })
 
 @login_required
@@ -97,3 +100,20 @@ def load_users_htmx(request):
     users = CustomUser.objects.filter(is_active=True)
     
     return render(request, "quotes/_users_select_options.html", {"users": users})
+
+@login_required
+def product_search_htmx(request):
+    search_term = (request.GET.get("product_search") or "").strip()
+
+    if not search_term:
+        return render(request, "quotes/_product_search.html", {
+            "products": []
+        })
+
+    query = Q(name__icontains=search_term) | Q(sku__icontains=search_term)
+    products = Product.objects.filter(query).order_by("name")[:10]
+    
+    return render(request, "quotes/_product_search.html", {
+        "products": products
+    })
+

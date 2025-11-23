@@ -1,0 +1,15 @@
+{% if products %}
+    {% for product in products %}
+        <button type="button"
+                class="list-group-item list-group-item-action small js-product-result"
+                data-part-number="{{ product.sku}}"
+                data-product-name="{{ product.name }}"
+                data-unit-price="{{ product.price|floatformat:2}}">
+            {{ product.sku}} - {{ product.name }}
+        </button>
+    {% endfor %}
+{% else %}
+    <div class="list-group-item small text-muted">
+        No se encontraron productos…
+    </div>
+{% endif %}

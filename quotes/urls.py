@@ -18,4 +18,5 @@ urlpatterns = [
     path("<int:pk>/", views.quote_detail, name="quote_detail"),
     
     path("load-users-htmx/", views.load_users_htmx, name="load_users_htmx"),
+    path("product-search-htmx/", views.product_search_htmx, name="product_search_htmx"),
 ] 

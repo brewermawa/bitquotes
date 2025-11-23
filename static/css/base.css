@@ -12,3 +12,7 @@
 
 .htmx-indicator { display: none; }
 .htmx-request .htmx-indicator { display: inline-flex; }
+
+.list-group-item.list-group-item-action:hover {
+    background-color: #dee2ff !important;
+}

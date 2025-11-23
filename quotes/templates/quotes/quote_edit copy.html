@@ -91,13 +91,127 @@
                 </thead>
 
                 <tbody id="quote-lines-body" class="small">
-                    {% if not quote.quote_lines.exists %}
-                        <tr id="empty-quote-row">
-                            <td colspan="7" class="text-muted text-center py-3">
-                                Aún no hay productos en esta cotización.
-                            </td>
-                        </tr>
-                    {% endif %}
+                    <tr>
+                        <td>1</td>
+                        <td>T650-24</td>
+                        <td>HP DesignJet T650 24-in</td>
+                        <td class="text-end">
+                            <input type="number"
+                                   class="form-control form-control-sm text-end js-qty-input"
+                                   name="qty_line_1"
+                                   value="1"
+                                   min="1"
+                                   step="1"
+                                   style="width: 80px; margin-left: auto;">
+                        </td>
+                        <td class="text-end js-unit-price" data-unit-price="39990.00">$ 39,990.00</td>
+                        <td class="text-end">
+                            <select class="form-select form-select-sm text-end js-discount-select"
+                                    name="discount_line_1"
+                                    style="width: 90px; margin-left: auto;">
+                                <option value="0" selected>0%</option>
+                                <option value="5">5%</option>
+                                <option value="10">10%</option>
+                                <option value="15">15%</option>
+                                <option value="20">20%</option>
+                                <option value="25">25%</option>
+                                <option value="30">30%</option>
+                            </select>
+                        </td>
+                        <td class="text-end js-subtotal">$ 39,990.00</td>
+                        <td class="text-end">
+                            <button type="button"
+                                    class="btn btn-sm btn-link text-danger p-0 js-delete-line"
+                                    title="Eliminar línea">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td>2</td>
+                        <td>KOD-PS50</td>
+                        <td>Kodak Alaris S2080w Scanner</td>
+                        <td class="text-end">
+                            <input type="number"
+                                   class="form-control form-control-sm text-end js-qty-input"
+                                   name="qty_line_2"
+                                   value="2"
+                                   min="1"
+                                   step="1"
+                                   style="width: 80px; margin-left: auto;">
+                        </td>
+                        <td class="text-end js-unit-price" data-unit-price="15500.00">$ 15,500.00</td>
+                        <td class="text-end">
+                            <select class="form-select form-select-sm text-end js-discount-select"
+                                    name="discount_line_1"
+                                    style="width: 90px; margin-left: auto;">
+                                <option value="0" selected>0%</option>
+                                <option value="5">5%</option>
+                                <option value="10">10%</option>
+                                <option value="15">15%</option>
+                                <option value="20">20%</option>
+                                <option value="25">25%</option>
+                                <option value="30">30%</option>
+                            </select>
+                        </td>
+                        <td class="text-end js-subtotal">$ 27,900.00</td>
+                        <td class="text-end">
+                            <button type="button"
+                                    class="btn btn-sm btn-link text-danger p-0 js-delete-line"
+                                    title="Eliminar línea">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+
+                    <tr>
+                        <td>3</td>
+                        <td>INK-914XL</td>
+                        <td>Tinta HP 914XL Photo Black</td>
+                        <td class="text-end">
+                            <input type="number"
+                                   class="form-control form-control-sm text-end js-qty-input"
+                                   name="qty_line_3"
+                                   value="4"
+                                   min="1"
+                                   step="1"
+                                style="width: 80px; margin-left: auto;">
+                        </td>
+                        <td class="text-end js-unit-price" data-unit-price="890.00">$ 890.00</td>
+                        <td class="text-end">
+                            <select class="form-select form-select-sm text-end js-discount-select"
+                                    name="discount_line_1"
+                                    style="width: 90px; margin-left: auto;">
+                                <option value="0" selected>0%</option>
+                                <option value="5">5%</option>
+                                <option value="10">10%</option>
+                                <option value="15">15%</option>
+                                <option value="20">20%</option>
+                                <option value="25">25%</option>
+                                <option value="30">30%</option>
+                            </select>
+                        </td>
+                        <td class="text-end js-subtotal">$ 3,560.00</td>
+                        <td class="text-end">
+                            <button type="button"
+                                    class="btn btn-sm btn-link text-danger p-0 js-delete-line"
+                                    title="Eliminar línea">
+                                <i class="bi bi-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+
+
+                    <!-- Si no hay líneas, mostrar este bloque -->
+                    <!--
+                    <tr>
+                        <td colspan="7" class="text-muted text-center py-3">
+                        Aún no hay productos en esta cotización.
+                        </td>
+                    </tr>
+                    -->
+
                 </tbody>
             </table>
         </div>
@@ -131,14 +245,6 @@
         <div id="product-search-results" class="list-group mb-3">
         </div>
     </form>
-
-    <template id="discount-options-template">
-        {% for value, label in discount_choices %}
-            <option value="{{ value }}"{% if forloop.first %} selected{% endif %}>
-                {{ label }}
-            </option>
-        {% endfor %}
-    </template>
 {% endblock content %}
 
 {% block extra_js %}
@@ -150,9 +256,6 @@
     minimumFractionDigits: 2,
     maximumFractionDigits: 2,
   });
-
-  // Se rellenar� al cargar el DOM con las <option> generadas por Django
-  let discountOptionsHtml = "";
 
   function recalcRowSubtotal(row) {
     const qtyInput = row.querySelector(".js-qty-input");
@@ -174,35 +277,11 @@
     subtotalCell.textContent = mxnFormatter.format(subtotal);
   }
 
-  // Cuenta SOLO filas reales (las que tienen input de cantidad)
   function getNextLineNumber() {
     const tbody = document.getElementById("quote-lines-body");
     if (!tbody) return 1;
     const rows = tbody.querySelectorAll("tr");
-    let count = 0;
-    rows.forEach((row) => {
-      if (row.querySelector(".js-qty-input")) {
-        count += 1;
-      }
-    });
-    return count + 1;
-  }
-
-  // Renumera las l�neas 1,2,3,\u2026 ignorando la fila del mensaje vac�o
-  function renumberLines() {
-    const tbody = document.getElementById("quote-lines-body");
-    if (!tbody) return;
-
-    let lineNumber = 1;
-    tbody.querySelectorAll("tr").forEach((row) => {
-      if (row.querySelector(".js-qty-input")) {
-        const firstCell = row.querySelector("td");
-        if (firstCell) {
-          firstCell.textContent = lineNumber;
-          lineNumber += 1;
-        }
-      }
-    });
+    return rows.length + 1;
   }
 
   function addProductAsLine(button) {
@@ -212,12 +291,6 @@
 
     const tbody = document.getElementById("quote-lines-body");
     if (!tbody) return;
-
-    // Quitar la fila de "A�n no hay productos..." si existe
-    const emptyRow = document.getElementById("empty-quote-row");
-    if (emptyRow) {
-      emptyRow.remove();
-    }
 
     const lineNumber = getNextLineNumber();
 
@@ -247,7 +320,13 @@
           class="form-select form-select-sm text-end js-discount-select"
           name="discount_line_${lineNumber}"
           style="width: 90px; margin-left: auto;">
-          ${discountOptionsHtml}
+          <option value="0" selected>0%</option>
+          <option value="5">5%</option>
+          <option value="10">10%</option>
+          <option value="15">15%</option>
+          <option value="20">20%</option>
+          <option value="25">25%</option>
+          <option value="30">30%</option>
         </select>
       </td>
 
@@ -258,29 +337,20 @@
       <td class="text-end">
         <button type="button"
                 class="btn btn-sm btn-link text-danger p-0 js-delete-line"
-                title="Eliminar l�nea">
+                title="Eliminar línea">
           <i class="bi bi-trash"></i>
         </button>
       </td>
     `;
 
     tbody.appendChild(row);
-
-    // Renumerar por si en el futuro agregas en otro orden
-    renumberLines();
   }
 
   document.addEventListener("DOMContentLoaded", function () {
     const tbody = document.getElementById("quote-lines-body");
 
-    // Tomar las opciones de descuento desde el template generado por Django
-    const discountOptionsTemplate = document.getElementById("discount-options-template");
-    if (discountOptionsTemplate) {
-      discountOptionsHtml = discountOptionsTemplate.innerHTML.trim();
-    }
-
     if (tbody) {
-      // Cantidad din�mica
+      // Cantidad dinámica
       tbody.addEventListener("input", function (event) {
         if (event.target.classList.contains("js-qty-input")) {
           const row = event.target.closest("tr");
@@ -288,7 +358,7 @@
         }
       });
 
-      // Descuento din�mico
+      // Descuento dinámico
       tbody.addEventListener("change", function (event) {
         if (event.target.classList.contains("js-discount-select")) {
           const row = event.target.closest("tr");
@@ -301,40 +371,19 @@
         const deleteBtn = event.target.closest(".js-delete-line");
         if (deleteBtn) {
           const row = deleteBtn.closest("tr");
-          if (row) {
-            row.remove();
-
-            // �Quedan filas reales?
-            const hasLines = tbody.querySelector(".js-qty-input");
-            if (!hasLines) {
-              // Si ya no hay, mostramos mensaje vac�o
-              tbody.innerHTML = `
-                <tr id="empty-quote-row">
-                  <td colspan="7" class="text-muted text-center py-3">
-                    Aún no hay productos en esta cotización.
-                  </td>
-                </tr>
-              `;
-            } else {
-              // Si todav�a hay l�neas, renumeramos
-              renumberLines();
-            }
-          }
+          if (row) row.remove();
         }
       });
 
-      // Recalcular las filas existentes al cargar (por si vienen del servidor)
+      // Recalcular las filas existentes al cargar
       tbody.querySelectorAll("tr").forEach((row) => {
         if (row.querySelector(".js-qty-input") && row.querySelector(".js-discount-select")) {
           recalcRowSubtotal(row);
         }
       });
-
-      // Por si ya vienen l�neas desde Django, renumeramos al inicio
-      renumberLines();
     }
 
-    // Agregar nueva l�nea desde resultados
+    // Agregar nueva línea desde resultados
     document.addEventListener("click", function (event) {
       const btn = event.target.closest(".js-product-result");
       if (btn) {
