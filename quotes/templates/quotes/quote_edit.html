@@ -86,20 +86,73 @@
                         <th style="width: 140px;" class="text-end">Precio unitario</th>
                         <th style="width: 120px;" class="text-end">Descuento</th>
                         <th style="width: 140px;" class="text-end">Subtotal</th>
-                        <th style="width: 40px;"></th>
+                        <th style="width: 60px;"></th>
                     </tr>
                 </thead>
 
                 <tbody id="quote-lines-body" class="small">
-                    {% if not quote.quote_lines.exists %}
+
+                    {% if quote.quote_lines.exists %}
+                        {% for line in quote.quote_lines %}
+                            <tr>
+                                <td>{{ forloop.counter }}</td>
+                                <td>{{ line.product }}</td>
+                                <td>{{ line.description }}</td>
+
+                                <td class="text-end">
+                                    <input type="number"
+                                        class="form-control form-control-sm text-end js-qty-input"
+                                        name="qty_line_${lineNumber}"
+                                        value="{{ line.quantity }}"
+                                        min="1"
+                                        step="1"
+                                        style="width: 80px; margin-left: auto;">
+                                </td>
+
+                                <td class="text-end js-unit-price" data-unit-price="{{ line.unit_price }}">
+                                    {{ line.unit_price }}
+                                </td>
+
+                                <td class="text-end">
+                                    <select class="form-select form-select-sm text-end js-discount-select"
+                                            name="discount_line_${lineNumber}"
+                                            style="width: 90px; margin-left: auto;">
+                                        {{ line.discount }}
+                                    </select>
+                                </td>
+
+                                <td class="text-end js-subtotal">
+                                    {{ line.unit_price }}
+                                </td>
+
+                                <td class="text-end">
+                                    <button type="button"
+                                            class="btn btn-sm btn-link text-primary p-0 me-2 js-related-line"
+                                            title="Productos relacionados"
+                                            hx-get="/quotes/products/{{ line.product.id }}/related/"
+                                            hx-target="#related-products-container"
+                                            hx-swap="innerHTML">
+                                        <i class="bi bi-layers fs-7"></i>
+                                    </button>
+
+                                    <button type="button"
+                                            class="btn btn-sm btn-link text-danger p-0 js-delete-line"
+                                            title="Eliminar línea">
+                                        <i class="bi bi-trash fs-7"></i>
+                                    </button>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    {% else %}
                         <tr id="empty-quote-row">
-                            <td colspan="7" class="text-muted text-center py-3">
-                                Aún no hay productos en esta cotización.
+                            <td colspan="8" class="text-muted text-center py-3">
+                                Aún no hay productos en esta cotización
                             </td>
                         </tr>
                     {% endif %}
                 </tbody>
             </table>
+            <div id="related-products-container" class="mt-3"></div>
         </div>
 
         <!-- SECCIÓN: Agregar nueva línea -->
@@ -151,7 +204,7 @@
     maximumFractionDigits: 2,
   });
 
-  // Se rellenar� al cargar el DOM con las <option> generadas por Django
+  // Se rellenará al cargar el DOM con las <option> generadas por Django
   let discountOptionsHtml = "";
 
   function recalcRowSubtotal(row) {
@@ -188,7 +241,7 @@
     return count + 1;
   }
 
-  // Renumera las l�neas 1,2,3,\u2026 ignorando la fila del mensaje vac�o
+  // Renumera las líneas 1,2,3,… ignorando la fila del mensaje vacío
   function renumberLines() {
     const tbody = document.getElementById("quote-lines-body");
     if (!tbody) return;
@@ -206,21 +259,21 @@
   }
 
   function addProductAsLine(button) {
-    const partNumber = button.getAttribute("data-part-number") || "";
-    const productName = button.getAttribute("data-product-name") || "";
-    const unitPrice = parseFloat(button.getAttribute("data-unit-price") || "0") || 0;
+    const productId = button.dataset.productId || "";
+    const partNumber = button.dataset.partNumber || "";
+    const productName = button.dataset.productName || "";
+    const unitPrice = parseFloat(button.dataset.unitPrice || "0") || 0;
 
     const tbody = document.getElementById("quote-lines-body");
     if (!tbody) return;
 
-    // Quitar la fila de "A�n no hay productos..." si existe
+    // Quitar la fila de "Aún no hay productos..." si existe
     const emptyRow = document.getElementById("empty-quote-row");
     if (emptyRow) {
       emptyRow.remove();
     }
 
     const lineNumber = getNextLineNumber();
-
     const row = document.createElement("tr");
 
     row.innerHTML = `
@@ -255,18 +308,25 @@
         ${mxnFormatter.format(unitPrice)}
       </td>
 
-      <td class="text-end">
+      <td class="text-end" style="width: 60px;">
+
+        <button type="button"
+                class="btn btn-sm btn-link text-primary p-0 me-2 js-related-line"
+                title="Productos relacionados"
+                data-product-id="${productId}">
+          <i class="bi bi-layers fs-7"></i>
+        </button>
+
         <button type="button"
                 class="btn btn-sm btn-link text-danger p-0 js-delete-line"
-                title="Eliminar l�nea">
-          <i class="bi bi-trash"></i>
+                title="Eliminar línea">
+          <i class="bi bi-trash fs-7"></i>
         </button>
+
       </td>
     `;
 
     tbody.appendChild(row);
-
-    // Renumerar por si en el futuro agregas en otro orden
     renumberLines();
   }
 
@@ -280,7 +340,7 @@
     }
 
     if (tbody) {
-      // Cantidad din�mica
+      // Cantidad dinámica
       tbody.addEventListener("input", function (event) {
         if (event.target.classList.contains("js-qty-input")) {
           const row = event.target.closest("tr");
@@ -288,7 +348,7 @@
         }
       });
 
-      // Descuento din�mico
+      // Descuento dinámico
       tbody.addEventListener("change", function (event) {
         if (event.target.classList.contains("js-discount-select")) {
           const row = event.target.closest("tr");
@@ -304,10 +364,10 @@
           if (row) {
             row.remove();
 
-            // �Quedan filas reales?
+            // ¿Quedan filas reales?
             const hasLines = tbody.querySelector(".js-qty-input");
             if (!hasLines) {
-              // Si ya no hay, mostramos mensaje vac�o
+              // Si ya no hay, mostramos mensaje vacío
               tbody.innerHTML = `
                 <tr id="empty-quote-row">
                   <td colspan="7" class="text-muted text-center py-3">
@@ -316,7 +376,6 @@
                 </tr>
               `;
             } else {
-              // Si todav�a hay l�neas, renumeramos
               renumberLines();
             }
           }
@@ -330,17 +389,74 @@
         }
       });
 
-      // Por si ya vienen l�neas desde Django, renumeramos al inicio
+      // Por si ya vienen líneas desde Django, renumeramos al inicio
       renumberLines();
     }
 
-    // Agregar nueva l�nea desde resultados
+    // Delegación global de click (productos, relacionados, cerrar, agregar todos)
     document.addEventListener("click", function (event) {
-      const btn = event.target.closest(".js-product-result");
-      if (btn) {
-        addProductAsLine(btn);
+      // 1) Agregar nueva línea desde cualquier botón .js-product-result
+      const productBtn = event.target.closest(".js-product-result");
+      if (productBtn) {
+        addProductAsLine(productBtn);
+        return;
+      }
+
+      // 2) Botón de productos relacionados en la línea
+      const relatedBtn = event.target.closest(".js-related-line");
+      if (relatedBtn) {
+        const productId = relatedBtn.dataset.productId;
+        if (!productId) return;
+
+        console.log("Click en related, productId:", productId);
+
+        const url = `/quotes/products/${productId}/related/`;
+
+        fetch(url, {
+          headers: {
+            "HX-Request": "true"  // por si en Django usas request.htmx
+          }
+        })
+          .then(response => {
+            if (!response.ok) {
+              console.error("Error al cargar relacionados:", response.status);
+              return "";
+            }
+            return response.text();
+          })
+          .then(html => {
+            if (!html) return;
+            const container = document.getElementById("related-products-container");
+            if (container) {
+              container.innerHTML = html;
+            }
+          })
+          .catch(err => {
+            console.error("Error de red al cargar relacionados:", err);
+          });
+
+        return;
+      }
+
+      // 3) Cerrar tarjeta de relacionados
+      const closeRelatedBtn = event.target.closest(".js-close-related");
+      if (closeRelatedBtn) {
+        const card = closeRelatedBtn.closest(".card");
+        if (card) card.remove();
+        return;
+      }
+
+      // 4) Agregar TODOS los relacionados mostrados
+      const addAllRelatedBtn = event.target.closest(".js-add-all-related");
+      if (addAllRelatedBtn) {
+        const card = addAllRelatedBtn.closest(".card");
+        if (!card) return;
+        const buttons = card.querySelectorAll(".js-product-result");
+        buttons.forEach((b) => addProductAsLine(b));
+        return;
       }
     });
   });
 </script>
+
 {% endblock extra_js %}

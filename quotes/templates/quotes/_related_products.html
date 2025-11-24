@@ -1,0 +1,42 @@
+
+
+<div class="card shadow-sm">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <span class="fw-semibold small">
+            Productos relacionados con {{ product.sku }} - {{ product.name }}
+        </span>
+        <button type="button"
+                class="btn btn-sm btn-link text-secondary p-0 js-close-related"
+                title="Cerrar">
+            <i class="bi bi-x-lg fs-6"></i>
+        </button>
+    </div>
+
+    <div class="list-group list-group-flush">
+        {% if related_products %}
+            {% for rel in related_products %}
+                <button type="button"
+                        class="list-group-item list-group-item-action small js-product-result"
+                        data-product-id="{{ rel.id }}"
+                        data-part-number="{{ rel.sku }}"
+                        data-product-name="{{ rel.name }}"
+                        data-unit-price="{{ rel.price }}">
+                    {{ rel.sku }} - {{ rel.name }}
+                </button>
+            {% endfor %}
+        {% else %}
+            <div class="list-group-item small text-muted">
+                Este producto no tiene relacionados configurados.
+            </div>
+        {% endif %}
+    </div>
+
+    {% if related_products %}
+        <div class="card-footer text-end">
+            <button type="button"
+                    class="btn btn-sm btn-outline-primary js-add-all-related">
+                Agregar todos a la cotización
+            </button>
+        </div>
+    {% endif %}
+</div>

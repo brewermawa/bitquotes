@@ -2,6 +2,7 @@
     {% for product in products %}
         <button type="button"
                 class="list-group-item list-group-item-action small js-product-result"
+                data-product-id="{{ product.id }}"
                 data-part-number="{{ product.sku}}"
                 data-product-name="{{ product.name }}"
                 data-unit-price="{{ product.price|floatformat:2}}">
