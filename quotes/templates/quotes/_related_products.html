@@ -1,5 +1,3 @@
-
-
 <div class="card shadow-sm">
     <div class="card-header d-flex justify-content-between align-items-center">
         <span class="fw-semibold small">
@@ -16,12 +14,17 @@
         {% if related_products %}
             {% for rel in related_products %}
                 <button type="button"
-                        class="list-group-item list-group-item-action small js-product-result"
+                        class="list-group-item list-group-item-action d-flex justify-content-between align-items-center small py-0 px-2 js-product-result"
                         data-product-id="{{ rel.id }}"
                         data-part-number="{{ rel.sku }}"
                         data-product-name="{{ rel.name }}"
                         data-unit-price="{{ rel.price }}">
-                    {{ rel.sku }} - {{ rel.name }}
+                    <span class="text-start">
+                        {{ rel.sku }} - {{ rel.name }}
+                    </span>
+                    <span class="text-primary">
+                        <i class="bi bi-plus-lg fs-4"></i>
+                    </span>
                 </button>
             {% endfor %}
         {% else %}

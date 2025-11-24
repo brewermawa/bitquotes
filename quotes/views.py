@@ -3,7 +3,7 @@ from django.contrib.auth.decorators import login_required
 from django.views.generic import ListView, CreateView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.urls import reverse_lazy, reverse
-from django.http import HttpResponseBadRequest
+from django.http import HttpResponseBadRequest, HttpResponse
 from django.db.models import Q
 
 from .models import Quote, QuoteLine
@@ -76,13 +76,13 @@ def quote_edit(request, pk):
     payment_terms_form = QuotePaymentTermsForm(instance=quote)
     discount_choices = QuoteLine.Discount.choices
 
-    lines = QuoteLine.objects.filter(quote=quote)
+    quote_lines = QuoteLine.objects.filter(quote=quote)
 
     return render(request, "quotes/quote_edit.html", {
         "quote_line_form": quote_line_form,
         "payment_terms_form": payment_terms_form,
         "quote": quote,
-        "lines": lines,
+        "quote_lines": quote_lines,
         "discount_choices": discount_choices,
     })
 
@@ -116,4 +116,17 @@ def product_search_htmx(request):
     return render(request, "quotes/_product_search.html", {
         "products": products
     })
+
+@login_required
+def related_products(request, pk):
+    product = get_object_or_404(Product, pk=pk)
+    related_products = product.related_product.all()
+    
+    return render(request, "quotes/_related_products.html", {
+        "product": product,
+        "related_products": related_products,
+    })
+
+#TODO: Cuando se seleccione un producto en el buscador para agregar línea, reiniciar el buscador
+#TODO: Cuando un producto tenga relacionados, tener la opción de agregar un producto o todos a la vez
 

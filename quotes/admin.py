@@ -6,6 +6,7 @@ from .models import Quote, QuoteLine, QuoteComment
 class QuoteLineInline(admin.StackedInline):
     model = QuoteLine
     extra = 0
+    #fields = ["product", "description", "quantity", "unit_price"]
     readonly_fields = ["product", "description", "quantity", "unit_price", "section", "discount", "delivery_time"]
     can_delete = False
     show_change_link = False

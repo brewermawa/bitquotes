@@ -93,10 +93,10 @@
                 <tbody id="quote-lines-body" class="small">
 
                     {% if quote.quote_lines.exists %}
-                        {% for line in quote.quote_lines %}
-                            <tr>
+                        {% for line in quote_lines %}
+                            <tr data-product-id="{{ line.product.id }}">
                                 <td>{{ forloop.counter }}</td>
-                                <td>{{ line.product }}</td>
+                                <td>{{ line.product.sku }}</td>
                                 <td>{{ line.description }}</td>
 
                                 <td class="text-end">
@@ -126,14 +126,17 @@
                                 </td>
 
                                 <td class="text-end">
-                                    <button type="button"
-                                            class="btn btn-sm btn-link text-primary p-0 me-2 js-related-line"
-                                            title="Productos relacionados"
-                                            hx-get="/quotes/products/{{ line.product.id }}/related/"
-                                            hx-target="#related-products-container"
-                                            hx-swap="innerHTML">
-                                        <i class="bi bi-layers fs-7"></i>
-                                    </button>
+                                    
+                                    {% if line.product.related_product.exists %}
+                                        <button type="button"
+                                                class="btn btn-sm btn-link text-primary p-0 me-2 js-related-line"
+                                                title="Productos relacionados"
+                                                hx-get="/product/{{ line.product.id }}/related/"
+                                                hx-target="#related-products-container"
+                                                hx-swap="innerHTML">
+                                            <i class="bi bi-layers fs-7"></i>
+                                        </button>
+                                    {% endif %}
 
                                     <button type="button"
                                             class="btn btn-sm btn-link text-danger p-0 js-delete-line"
@@ -263,72 +266,76 @@
     const partNumber = button.dataset.partNumber || "";
     const productName = button.dataset.productName || "";
     const unitPrice = parseFloat(button.dataset.unitPrice || "0") || 0;
+    const hasRelated = button.dataset.hasRelated === "true";  // 👈 nuevo
 
     const tbody = document.getElementById("quote-lines-body");
     if (!tbody) return;
 
-    // Quitar la fila de "Aún no hay productos..." si existe
     const emptyRow = document.getElementById("empty-quote-row");
     if (emptyRow) {
-      emptyRow.remove();
+        emptyRow.remove();
     }
 
     const lineNumber = getNextLineNumber();
     const row = document.createElement("tr");
+    row.dataset.productId = productId;
 
-    row.innerHTML = `
-      <td>${lineNumber}</td>
-      <td>${partNumber}</td>
-      <td>${productName}</td>
-
-      <td class="text-end">
-        <input type="number"
-               class="form-control form-control-sm text-end js-qty-input"
-               name="qty_line_${lineNumber}"
-               value="1"
-               min="1"
-               step="1"
-               style="width: 80px; margin-left: auto;">
-      </td>
-
-      <td class="text-end js-unit-price" data-unit-price="${unitPrice.toFixed(2)}">
-        ${mxnFormatter.format(unitPrice)}
-      </td>
-
-      <td class="text-end">
-        <select
-          class="form-select form-select-sm text-end js-discount-select"
-          name="discount_line_${lineNumber}"
-          style="width: 90px; margin-left: auto;">
-          ${discountOptionsHtml}
-        </select>
-      </td>
-
-      <td class="text-end js-subtotal">
-        ${mxnFormatter.format(unitPrice)}
-      </td>
-
-      <td class="text-end" style="width: 60px;">
-
+    const relatedButtonHtml = hasRelated
+        ? `
         <button type="button"
                 class="btn btn-sm btn-link text-primary p-0 me-2 js-related-line"
                 title="Productos relacionados"
                 data-product-id="${productId}">
-          <i class="bi bi-layers fs-7"></i>
+            <i class="bi bi-layers fs-7"></i>
         </button>
+        `
+        : "";
 
+    row.innerHTML = `
+        <td>${lineNumber}</td>
+        <td>${partNumber}</td>
+        <td>${productName}</td>
+
+        <td class="text-end">
+        <input type="number"
+                class="form-control form-control-sm text-end js-qty-input"
+                name="qty_line_${lineNumber}"
+                value="1"
+                min="1"
+                step="1"
+                style="width: 80px; margin-left: auto;">
+        </td>
+
+        <td class="text-end js-unit-price" data-unit-price="${unitPrice.toFixed(2)}">
+        ${mxnFormatter.format(unitPrice)}
+        </td>
+
+        <td class="text-end">
+        <select
+            class="form-select form-select-sm text-end js-discount-select"
+            name="discount_line_${lineNumber}"
+            style="width: 90px; margin-left: auto;">
+            ${discountOptionsHtml}
+        </select>
+        </td>
+
+        <td class="text-end js-subtotal">
+        ${mxnFormatter.format(unitPrice)}
+        </td>
+
+        <td class="text-end" style="width: 60px;">
+        ${relatedButtonHtml}
         <button type="button"
                 class="btn btn-sm btn-link text-danger p-0 js-delete-line"
                 title="Eliminar línea">
-          <i class="bi bi-trash fs-7"></i>
+            <i class="bi bi-trash fs-7"></i>
         </button>
-
-      </td>
+        </td>
     `;
 
     tbody.appendChild(row);
     renumberLines();
-  }
+    }
 
   document.addEventListener("DOMContentLoaded", function () {
     const tbody = document.getElementById("quote-lines-body");
@@ -410,7 +417,7 @@
 
         console.log("Click en related, productId:", productId);
 
-        const url = `/quotes/products/${productId}/related/`;
+        const url = `/product/${productId}/related/`;
 
         fetch(url, {
           headers: {
@@ -451,8 +458,11 @@
       if (addAllRelatedBtn) {
         const card = addAllRelatedBtn.closest(".card");
         if (!card) return;
+
         const buttons = card.querySelectorAll(".js-product-result");
         buttons.forEach((b) => addProductAsLine(b));
+
+        card.remove();
         return;
       }
     });
