@@ -93,20 +93,20 @@
                 <tbody id="quote-lines-body" class="small">
 
                     {% if quote.quote_lines.exists %}
-                        {% for line in quote.quote_lines %}
-                            <tr>
+                        {% for line in quote_lines %}
+                            <tr data-product-id="{{ line.product.id }}">
                                 <td>{{ forloop.counter }}</td>
-                                <td>{{ line.product }}</td>
+                                <td>{{ line.product.sku }}</td>
                                 <td>{{ line.description }}</td>
 
                                 <td class="text-end">
                                     <input type="number"
-                                        class="form-control form-control-sm text-end js-qty-input"
-                                        name="qty_line_${lineNumber}"
-                                        value="{{ line.quantity }}"
-                                        min="1"
-                                        step="1"
-                                        style="width: 80px; margin-left: auto;">
+                                           class="form-control form-control-sm text-end js-qty-input"
+                                           name="qty_line_${lineNumber}"
+                                           value="{{ line.quantity }}"
+                                           min="1"
+                                           step="1"
+                                           style="width: 80px; margin-left: auto;">
                                 </td>
 
                                 <td class="text-end js-unit-price" data-unit-price="{{ line.unit_price }}">
@@ -126,14 +126,15 @@
                                 </td>
 
                                 <td class="text-end">
-                                    <button type="button"
-                                            class="btn btn-sm btn-link text-primary p-0 me-2 js-related-line"
-                                            title="Productos relacionados"
-                                            hx-get="/quotes/products/{{ line.product.id }}/related/"
-                                            hx-target="#related-products-container"
-                                            hx-swap="innerHTML">
-                                        <i class="bi bi-layers fs-7"></i>
-                                    </button>
+                                    
+                                    {% if line.product.related_product.exists %}
+                                        <button type="button"
+                                                class="btn btn-sm btn-link text-primary p-0 me-2 js-related-line"
+                                                title="Productos relacionados"
+                                                data-product-id="{{ line.product.id }}">
+                                            <i class="bi bi-layers fs-7"></i>
+                                        </button>
+                                    {% endif %}
 
                                     <button type="button"
                                             class="btn btn-sm btn-link text-danger p-0 js-delete-line"
@@ -152,7 +153,7 @@
                     {% endif %}
                 </tbody>
             </table>
-            <div id="related-products-container" class="mt-3"></div>
+            <!--<div id="related-products-container" class="mt-3"></div>-->
         </div>
 
         <!-- SECCIÓN: Agregar nueva línea -->
@@ -259,30 +260,53 @@
   }
 
   function addProductAsLine(button) {
-    console.log("Esto debe imprimir cuando se agrega un producto")
-    const productId = button.dataset.productId || "";   // 👈 usar dataset
+    const productId = button.dataset.productId || "";
     const partNumber = button.dataset.partNumber || "";
     const productName = button.dataset.productName || "";
     const unitPrice = parseFloat(button.dataset.unitPrice || "0") || 0;
+    const hasRelated = button.dataset.hasRelated === "true";
 
     const tbody = document.getElementById("quote-lines-body");
     if (!tbody) return;
 
-    // Quitar la fila de "Aún no hay productos..." si existe
-    const emptyRow = document.getElementById("empty-quote-row");
-    if (emptyRow) {
-      emptyRow.remove();
+    // 👉 Si ya existe una fila con este producto, solo incrementa cantidad
+    const existingRow = tbody.querySelector(`tr[data-product-id="${productId}"]`);
+    console.log("ADD PRODUCT", { productId, existingRow });  // TEMP: para que veas qué está pasando
+
+    if (existingRow) {
+      const qtyInput = existingRow.querySelector(".js-qty-input");
+      if (qtyInput) {
+        qtyInput.value = parseFloat(qtyInput.value || "0") + 1;
+        recalcRowSubtotal(existingRow);
+      }
+
+      // 👁️ Marcar visualmente la fila que se actualizó
+      existingRow.classList.add("table-warning");
+      setTimeout(() => {
+        existingRow.classList.remove("table-warning");
+      }, 600); // 0.6 segundos
+
+      return;
     }
 
+    // 👉 Si NO existe, creamos una nueva fila
+    const emptyRow = document.getElementById("empty-quote-row");
+    if (emptyRow) emptyRow.remove();
+
     const lineNumber = getNextLineNumber();
-
     const row = document.createElement("tr");
+    row.dataset.productId = productId;
 
-    // ⚠️ OJO: aquí construimos SIEMPRE la URL, asumiendo que siempre hay productId
-    const relatedUrl = `/quotes/products/${productId}/related/`;
-
-    console.log("productId:", productId);
-    console.log("relatedUrl:", relatedUrl);
+    const relatedButtonHtml = hasRelated
+      ? `
+        <button type="button"
+                class="btn btn-sm btn-link text-primary p-0 me-2 js-related-line"
+                title="Productos relacionados"
+                data-product-id="${productId}">
+          <i class="bi bi-layers fs-7"></i>
+        </button>
+      `
+      : "";
 
     row.innerHTML = `
       <td>${lineNumber}</td>
@@ -317,30 +341,19 @@
       </td>
 
       <td class="text-end" style="width: 60px;">
-
-        <button type="button"
-                class="btn btn-sm btn-link text-primary p-0 me-2 js-related-line"
-                title="Productos relacionados"
-                hx-get="${relatedUrl}"
-                hx-target="#related-products-container"
-                hx-swap="innerHTML">
-          <i class="bi bi-layers fs-7"></i>
-        </button>
-
+        ${relatedButtonHtml}
         <button type="button"
                 class="btn btn-sm btn-link text-danger p-0 js-delete-line"
                 title="Eliminar línea">
           <i class="bi bi-trash fs-7"></i>
         </button>
-
       </td>
     `;
 
     tbody.appendChild(row);
-
-    // Renumerar por si en el futuro agregas en otro orden
     renumberLines();
   }
+
 
   document.addEventListener("DOMContentLoaded", function () {
     const tbody = document.getElementById("quote-lines-body");
@@ -388,7 +401,6 @@
                 </tr>
               `;
             } else {
-              // Si todavía hay líneas, renumeramos
               renumberLines();
             }
           }
@@ -406,16 +418,56 @@
       renumberLines();
     }
 
-    // Delegación global de click
+    // Delegación global de click (productos, relacionados, cerrar, agregar todos)
     document.addEventListener("click", function (event) {
-      // 1) Agregar nueva línea desde cualquier botón .js-product-result (buscador o relacionados)
+      // 1) Agregar nueva línea desde cualquier botón .js-product-result
       const productBtn = event.target.closest(".js-product-result");
       if (productBtn) {
         addProductAsLine(productBtn);
         return;
       }
 
-      // 2) Cerrar tarjeta de relacionados
+      // 2) Botón de productos relacionados en la línea
+      const relatedBtn = event.target.closest(".js-related-line");
+      if (relatedBtn) {
+          const productId = relatedBtn.dataset.productId;
+          if (!productId) return;
+
+          const currentRow = relatedBtn.closest("tr");
+          if (!currentRow) return;
+
+          // Si ya existe cualquier tarjeta abierta, eliminarla primero
+          const existingRelatedRow = document.querySelector(".related-products-row");
+          if (existingRelatedRow) existingRelatedRow.remove();
+
+          const url = `/product/${productId}/related/`;
+
+          fetch(url, {
+            headers: { "HX-Request": "true" }
+          })
+            .then(res => res.text())
+            .then(html => {
+
+              // Crear un <tr> debajo del producto actual
+              const newRow = document.createElement("tr");
+              newRow.classList.add("related-products-row");
+
+              newRow.innerHTML = `
+                  <td colspan="8">
+                      ${html}
+                  </td>
+              `;
+
+              // Insertarlo justo después de la fila actual
+              currentRow.insertAdjacentElement("afterend", newRow);
+            });
+
+          return;
+      }
+
+
+
+      // 3) Cerrar tarjeta de relacionados
       const closeRelatedBtn = event.target.closest(".js-close-related");
       if (closeRelatedBtn) {
         const card = closeRelatedBtn.closest(".card");
@@ -423,13 +475,17 @@
         return;
       }
 
-      // 3) Agregar TODOS los relacionados mostrados
+      // 4) Agregar TODOS los relacionados mostrados
       const addAllRelatedBtn = event.target.closest(".js-add-all-related");
       if (addAllRelatedBtn) {
         const card = addAllRelatedBtn.closest(".card");
         if (!card) return;
+
         const buttons = card.querySelectorAll(".js-product-result");
         buttons.forEach((b) => addProductAsLine(b));
+
+        const relatedRow = card.closest("tr.related-products-row");
+        if (relatedRow) relatedRow.remove();
         return;
       }
     });

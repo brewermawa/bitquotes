@@ -48,7 +48,6 @@ class QuoteHeadCreateView(LoginRequiredMixin, CreateView):
     def get_success_url(self):
         return reverse("quotes:quote_edit", kwargs={"pk": self.object.pk})
         
-    
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         form = context.get("form")
@@ -71,6 +70,14 @@ class QuoteHeadCreateView(LoginRequiredMixin, CreateView):
     
 @login_required
 def quote_edit(request, pk):
+    if request.method == "GET":
+        print("cargando en GET")
+
+    if request.method == "POST":
+        print("cargando en POST")
+        for k, v in request.POST.items():
+            print(k, "=>", v)
+
     quote = get_object_or_404(Quote, pk=pk)
     quote_line_form = QuoteLineForm()
     payment_terms_form = QuotePaymentTermsForm(instance=quote)
@@ -128,5 +135,4 @@ def related_products(request, pk):
     })
 
 #TODO: Cuando se seleccione un producto en el buscador para agregar línea, reiniciar el buscador
-#TODO: Cuando un producto tenga relacionados, tener la opción de agregar un producto o todos a la vez
 

@@ -1,5 +1,41 @@
 {% extends 'base.html' %}
 
+{% block head_extra %}
+<style>
+    /* Animación al abrir */
+  .fade-slide-in {
+    animation: fadeSlideIn 220ms ease-out;
+  }
+
+  @keyframes fadeSlideIn {
+    from {
+      opacity: 0;
+      transform: translateY(-6px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  /* Animación al cerrar */
+  .fade-slide-out {
+    animation: fadeSlideOut 180ms ease-in forwards;
+  }
+
+  @keyframes fadeSlideOut {
+    from {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    to {
+      opacity: 0;
+      transform: translateY(-6px);
+    }
+  }
+</style>
+{% endblock head_extra %}
+
 {% block content_header %}
     <div class="d-flex align-items-end justify-content-between mt-3 mb-2">
         <div>
@@ -101,12 +137,12 @@
 
                                 <td class="text-end">
                                     <input type="number"
-                                        class="form-control form-control-sm text-end js-qty-input"
-                                        name="qty_line_${lineNumber}"
-                                        value="{{ line.quantity }}"
-                                        min="1"
-                                        step="1"
-                                        style="width: 80px; margin-left: auto;">
+                                           class="form-control form-control-sm text-end js-qty-input"
+                                           name="qty_line_{{ forloop.counter }}"
+                                           value="{{ line.quantity }}"
+                                           min="1"
+                                           step="1"
+                                           style="width: 80px; margin-left: auto;">
                                 </td>
 
                                 <td class="text-end js-unit-price" data-unit-price="{{ line.unit_price }}">
@@ -114,12 +150,17 @@
                                 </td>
 
                                 <td class="text-end">
-                                    <select class="form-select form-select-sm text-end js-discount-select"
-                                            name="discount_line_${lineNumber}"
-                                            style="width: 90px; margin-left: auto;">
-                                        {{ line.discount }}
-                                    </select>
-                                </td>
+                                  <select class="form-select form-select-sm text-end js-discount-select"
+                                          name="discount_line_{{ forloop.counter }}"
+                                          style="width: 90px; margin-left: auto;">
+                                      {% for value, label in discount_choices %}
+                                          <option value="{{ value }}"{% if value == line.discount %} selected{% endif %}>
+                                              {{ label }}
+                                          </option>
+                                      {% endfor %}
+                                  </select>
+                              </td>
+
 
                                 <td class="text-end js-subtotal">
                                     {{ line.unit_price }}
@@ -131,9 +172,7 @@
                                         <button type="button"
                                                 class="btn btn-sm btn-link text-primary p-0 me-2 js-related-line"
                                                 title="Productos relacionados"
-                                                hx-get="/product/{{ line.product.id }}/related/"
-                                                hx-target="#related-products-container"
-                                                hx-swap="innerHTML">
+                                                data-product-id="{{ line.product.id }}">
                                             <i class="bi bi-layers fs-7"></i>
                                         </button>
                                     {% endif %}
@@ -144,6 +183,9 @@
                                         <i class="bi bi-trash fs-7"></i>
                                     </button>
                                 </td>
+                                <input type="hidden"
+                                       name="product_line_{{ forloop.counter }}"
+                                       value="{{ line.product.id }}">
                             </tr>
                         {% endfor %}
                     {% else %}
@@ -155,7 +197,41 @@
                     {% endif %}
                 </tbody>
             </table>
-            <div id="related-products-container" class="mt-3"></div>
+        </div>
+
+        <!-- Resumen de totales de la cotización -->
+        <div class="row justify-content-end">
+            <div class="col-md-4 col-lg-3">
+                <div class="card border-0 bg-light">
+                    <div class="card-body py-3 small">
+                        <div class="d-flex justify-content-between mb-1">
+                            <span>Subtotal</span>
+                            <span id="quote-subtotal">—</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-1">
+                            <span>Descuento</span>
+                            <span id="quote-discount">—</span>
+                        </div>
+                        <div class="d-flex justify-content-between mb-1">
+                            <span>IVA (16%)</span>
+                            <span id="quote-tax">—</span>
+                        </div>
+                        <hr class="my-2">
+                        <div class="d-flex justify-content-between fw-semibold">
+                            <span>Total</span>
+                            <span id="quote-total">—</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Botón para guardar la cotización -->
+        <div class="d-flex justify-content-end mt-4">
+            <button type="submit" class="btn btn-primary">
+                <i class="bi bi-save me-1"></i>
+                Guardar cotización
+            </button>
         </div>
 
         <!-- SECCIÓN: Agregar nueva línea -->
@@ -228,6 +304,9 @@
     }
 
     subtotalCell.textContent = mxnFormatter.format(subtotal);
+
+    // Actualizar totales generales
+    recalcTotals();
   }
 
   // Cuenta SOLO filas reales (las que tienen input de cantidad)
@@ -261,86 +340,151 @@
     });
   }
 
+  // Totales de la cotización (subtotal, descuento, IVA, total)
+  function recalcTotals() {
+    const tbody = document.getElementById("quote-lines-body");
+    if (!tbody) return;
+
+    let gross = 0;   // suma sin descuento
+    let net = 0;     // suma con descuento
+
+    tbody.querySelectorAll("tr").forEach((row) => {
+      const qtyInput = row.querySelector(".js-qty-input");
+      const unitPriceCell = row.querySelector(".js-unit-price");
+      const discountSelect = row.querySelector(".js-discount-select");
+
+      if (!qtyInput || !unitPriceCell || !discountSelect) return;
+
+      const qty = parseFloat(qtyInput.value) || 0;
+      const unitPrice = parseFloat(unitPriceCell.dataset.unitPrice || "0") || 0;
+      const discount = parseFloat(discountSelect.value || "0") || 0;
+
+      const rowGross = qty * unitPrice;
+      let rowNet = rowGross;
+      if (discount > 0) {
+        rowNet = rowGross * (1 - discount / 100);
+      }
+
+      gross += rowGross;
+      net += rowNet;
+    });
+
+    const discountAmount = gross - net;
+    const taxRate = 0.16;
+    const taxAmount = net * taxRate;
+    const total = net + taxAmount;
+
+    const subtotalEl = document.getElementById("quote-subtotal");
+    const discountEl = document.getElementById("quote-discount");
+    const taxEl = document.getElementById("quote-tax");
+    const totalEl = document.getElementById("quote-total");
+
+    if (subtotalEl) subtotalEl.textContent = mxnFormatter.format(gross);
+    if (discountEl) discountEl.textContent = mxnFormatter.format(discountAmount);
+    if (taxEl) taxEl.textContent = mxnFormatter.format(taxAmount);
+    if (totalEl) totalEl.textContent = mxnFormatter.format(total);
+  }
+
+  // PREVENIR DUPLICADOS: si ya existe, incrementar cantidad
   function addProductAsLine(button) {
     const productId = button.dataset.productId || "";
     const partNumber = button.dataset.partNumber || "";
     const productName = button.dataset.productName || "";
     const unitPrice = parseFloat(button.dataset.unitPrice || "0") || 0;
-    const hasRelated = button.dataset.hasRelated === "true";  // 👈 nuevo
+    const hasRelated = button.dataset.hasRelated === "true";
 
     const tbody = document.getElementById("quote-lines-body");
     if (!tbody) return;
 
-    const emptyRow = document.getElementById("empty-quote-row");
-    if (emptyRow) {
-        emptyRow.remove();
+    // Si ya existe una fila con este producto, solo incrementa cantidad
+    const existingRow = tbody.querySelector(`tr[data-product-id="${productId}"]`);
+    if (existingRow) {
+      const qtyInput = existingRow.querySelector(".js-qty-input");
+      if (qtyInput) {
+        qtyInput.value = parseFloat(qtyInput.value || "0") + 1;
+        recalcRowSubtotal(existingRow);
+      }
+
+      // Resaltar visualmente la fila actualizada
+      existingRow.classList.add("table-warning");
+      setTimeout(() => {
+        existingRow.classList.remove("table-warning");
+      }, 600);
+
+      return;
     }
+
+    // Si no existe, crear nueva fila
+    const emptyRow = document.getElementById("empty-quote-row");
+    if (emptyRow) emptyRow.remove();
 
     const lineNumber = getNextLineNumber();
     const row = document.createElement("tr");
     row.dataset.productId = productId;
 
-    const relatedButtonHtml = hasRelated
-        ? `
-        <button type="button"
-                class="btn btn-sm btn-link text-primary p-0 me-2 js-related-line"
-                title="Productos relacionados"
-                data-product-id="${productId}">
-            <i class="bi bi-layers fs-7"></i>
-        </button>
-        `
-        : "";
+    const relatedButtonHtml = hasRelated ? `
+      <button type="button"
+              class="btn btn-sm btn-link text-primary p-0 me-2 js-related-line"
+              title="Productos relacionados"
+              data-product-id="${productId}">
+        <i class="bi bi-layers fs-7"></i>
+      </button>
+    ` : "";
 
     row.innerHTML = `
-        <td>${lineNumber}</td>
-        <td>${partNumber}</td>
-        <td>${productName}</td>
+      <td>${lineNumber}</td>
+      <td>${partNumber}</td>
+      <td>${productName}</td>
 
-        <td class="text-end">
+      <td class="text-end">
         <input type="number"
-                class="form-control form-control-sm text-end js-qty-input"
-                name="qty_line_${lineNumber}"
-                value="1"
-                min="1"
-                step="1"
-                style="width: 80px; margin-left: auto;">
-        </td>
+              class="form-control form-control-sm text-end js-qty-input"
+              name="qty_line_${lineNumber}"
+              value="1"
+              min="1"
+              step="1"
+              style="width: 80px; margin-left: auto;">
+      </td>
 
-        <td class="text-end js-unit-price" data-unit-price="${unitPrice.toFixed(2)}">
+      <td class="text-end js-unit-price" data-unit-price="${unitPrice.toFixed(2)}">
         ${mxnFormatter.format(unitPrice)}
-        </td>
+      </td>
 
-        <td class="text-end">
+      <td class="text-end">
         <select
-            class="form-select form-select-sm text-end js-discount-select"
-            name="discount_line_${lineNumber}"
-            style="width: 90px; margin-left: auto;">
-            ${discountOptionsHtml}
+          class="form-select form-select-sm text-end js-discount-select"
+          name="discount_line_${lineNumber}"
+          style="width: 90px; margin-left: auto;">
+          ${discountOptionsHtml}
         </select>
-        </td>
+      </td>
 
-        <td class="text-end js-subtotal">
+      <td class="text-end js-subtotal">
         ${mxnFormatter.format(unitPrice)}
-        </td>
+      </td>
 
-        <td class="text-end" style="width: 60px;">
+      <td class="text-end" style="width: 60px;">
         ${relatedButtonHtml}
         <button type="button"
                 class="btn btn-sm btn-link text-danger p-0 js-delete-line"
                 title="Eliminar línea">
-            <i class="bi bi-trash fs-7"></i>
+          <i class="bi bi-trash fs-7"></i>
         </button>
-        </td>
+      </td>
+      <input type="hidden"
+           name="product_line_${lineNumber}"
+           value="${productId}">
     `;
 
     tbody.appendChild(row);
     renumberLines();
-    }
+    recalcRowSubtotal(row);  // también recalcula totales
+  }
 
   document.addEventListener("DOMContentLoaded", function () {
     const tbody = document.getElementById("quote-lines-body");
 
-    // Tomar las opciones de descuento desde el template generado por Django
+    // Opciones de descuento desde el template
     const discountOptionsTemplate = document.getElementById("discount-options-template");
     if (discountOptionsTemplate) {
       discountOptionsHtml = discountOptionsTemplate.innerHTML.trim();
@@ -371,10 +515,8 @@
           if (row) {
             row.remove();
 
-            // ¿Quedan filas reales?
             const hasLines = tbody.querySelector(".js-qty-input");
             if (!hasLines) {
-              // Si ya no hay, mostramos mensaje vacío
               tbody.innerHTML = `
                 <tr id="empty-quote-row">
                   <td colspan="7" class="text-muted text-center py-3">
@@ -385,71 +527,107 @@
             } else {
               renumberLines();
             }
+
+            recalcTotals();
           }
         }
       });
 
-      // Recalcular las filas existentes al cargar (por si vienen del servidor)
+      // Recalcular filas existentes al cargar
       tbody.querySelectorAll("tr").forEach((row) => {
         if (row.querySelector(".js-qty-input") && row.querySelector(".js-discount-select")) {
           recalcRowSubtotal(row);
         }
       });
 
-      // Por si ya vienen líneas desde Django, renumeramos al inicio
       renumberLines();
+      recalcTotals();
     }
 
-    // Delegación global de click (productos, relacionados, cerrar, agregar todos)
+    // Delegación global: productos, relacionados, cerrar, agregar todos
     document.addEventListener("click", function (event) {
-      // 1) Agregar nueva línea desde cualquier botón .js-product-result
+
+      // 1) Agregar producto desde buscador o relacionados
       const productBtn = event.target.closest(".js-product-result");
       if (productBtn) {
         addProductAsLine(productBtn);
         return;
       }
 
-      // 2) Botón de productos relacionados en la línea
+      // 2) Botón de productos relacionados en la línea (TOGGLE con animación)
       const relatedBtn = event.target.closest(".js-related-line");
       if (relatedBtn) {
         const productId = relatedBtn.dataset.productId;
         if (!productId) return;
 
-        console.log("Click en related, productId:", productId);
+        const currentRow = relatedBtn.closest("tr");
+        if (!currentRow) return;
 
+        // ¿Ya hay una fila de relacionados?
+        const existingRelatedRow = document.querySelector("tr.related-products-row");
+
+        if (existingRelatedRow) {
+          const isSameRow = existingRelatedRow.previousElementSibling === currentRow;
+
+          // Toggle: si es la misma fila, cerrar con animación
+          if (isSameRow) {
+            const inner = existingRelatedRow.querySelector("td > div");
+            if (inner) {
+              inner.classList.remove("fade-slide-in");
+              inner.classList.add("fade-slide-out");
+              setTimeout(() => existingRelatedRow.remove(), 180);
+            } else {
+              existingRelatedRow.remove();
+            }
+            return;
+          } else {
+            existingRelatedRow.remove();
+          }
+        }
+
+        // Abrir relacionados para este producto
         const url = `/product/${productId}/related/`;
 
-        fetch(url, {
-          headers: {
-            "HX-Request": "true"  // por si en Django usas request.htmx
-          }
-        })
-          .then(response => {
-            if (!response.ok) {
-              console.error("Error al cargar relacionados:", response.status);
-              return "";
-            }
-            return response.text();
-          })
+        fetch(url, { headers: { "HX-Request": "true" } })
+          .then(res => res.text())
           .then(html => {
             if (!html) return;
-            const container = document.getElementById("related-products-container");
-            if (container) {
-              container.innerHTML = html;
+
+            const newRow = document.createElement("tr");
+            newRow.classList.add("related-products-row");
+
+            newRow.innerHTML = `
+              <td colspan="8">
+                <div class="fade-slide-in">
+                  ${html}
+                </div>
+              </td>
+            `;
+
+            const parent = currentRow.parentNode;
+            if (parent) {
+              parent.insertBefore(newRow, currentRow.nextSibling);
             }
-          })
-          .catch(err => {
-            console.error("Error de red al cargar relacionados:", err);
           });
 
         return;
       }
 
-      // 3) Cerrar tarjeta de relacionados
+      // 3) Cerrar tarjeta de relacionados (X)
       const closeRelatedBtn = event.target.closest(".js-close-related");
       if (closeRelatedBtn) {
-        const card = closeRelatedBtn.closest(".card");
-        if (card) card.remove();
+        const relatedRow = closeRelatedBtn.closest("tr.related-products-row");
+
+        if (relatedRow) {
+          const inner = relatedRow.querySelector("td > div");
+          if (inner) {
+            inner.classList.remove("fade-slide-in");
+            inner.classList.add("fade-slide-out");
+            setTimeout(() => relatedRow.remove(), 180);
+          } else {
+            relatedRow.remove();
+          }
+        }
         return;
       }
 
@@ -460,9 +638,11 @@
         if (!card) return;
 
         const buttons = card.querySelectorAll(".js-product-result");
-        buttons.forEach((b) => addProductAsLine(b));
+        buttons.forEach(b => addProductAsLine(b));
 
-        card.remove();
+        const relatedRow = card.closest("tr.related-products-row");
+        if (relatedRow) relatedRow.remove();
+
         return;
       }
     });
