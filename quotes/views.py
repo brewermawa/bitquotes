@@ -70,18 +70,43 @@ class QuoteHeadCreateView(LoginRequiredMixin, CreateView):
     
 @login_required
 def quote_edit(request, pk):
-    if request.method == "GET":
-        print("cargando en GET")
+    quote = get_object_or_404(Quote, pk=pk)
+    discount_choices = QuoteLine.Discount.choices
+    quote_line_form = QuoteLineForm()
 
     if request.method == "POST":
         print("cargando en POST")
-        for k, v in request.POST.items():
-            print(k, "=>", v)
 
-    quote = get_object_or_404(Quote, pk=pk)
-    quote_line_form = QuoteLineForm()
-    payment_terms_form = QuotePaymentTermsForm(instance=quote)
-    discount_choices = QuoteLine.Discount.choices
+        posted_lines = [key.split("_")[2] for key in request.POST.keys() if key.startswith("product_line_")]
+        print("Líneas encontradas:", posted_lines)
+        
+        for line in posted_lines:
+            product_id = int(request.POST.get(f"product_line_{line}"))
+            quantity = int(request.POST.get(f"qty_line_{line}"))
+            discount = int(request.POST.get(f"discount_line_{line}"))
+
+            product = Product.objects.get(pk=product_id)
+
+            QuoteLine.objects.create(
+                quote=quote,
+                product=product,
+                description=product.name,
+                quantity=quantity,
+                unit_price=product.price,
+                discount=discount
+            )
+
+        payment_terms_form = QuotePaymentTermsForm(request.POST, instance=quote)
+
+        if payment_terms_form.is_valid():
+            payment_terms_form.save()
+            print(f"Payment terms saved: {quote.payment_terms}")
+        else:
+            print("payment_terms_form errors:", payment_terms_form.errors)
+            
+    else:
+        print("cargando en GET")
+        payment_terms_form = QuotePaymentTermsForm(instance=quote)
 
     quote_lines = QuoteLine.objects.filter(quote=quote)
 

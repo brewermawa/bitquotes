@@ -131,6 +131,7 @@
                     {% if quote.quote_lines.exists %}
                         {% for line in quote_lines %}
                             <tr data-product-id="{{ line.product.id }}">
+                                <input type="hidden" name="product_line_{{ forloop.counter }}" value="{{ line.product.id }}">
                                 <td>{{ forloop.counter }}</td>
                                 <td>{{ line.product.sku }}</td>
                                 <td>{{ line.description }}</td>
@@ -150,16 +151,16 @@
                                 </td>
 
                                 <td class="text-end">
-                                  <select class="form-select form-select-sm text-end js-discount-select"
-                                          name="discount_line_{{ forloop.counter }}"
-                                          style="width: 90px; margin-left: auto;">
-                                      {% for value, label in discount_choices %}
-                                          <option value="{{ value }}"{% if value == line.discount %} selected{% endif %}>
-                                              {{ label }}
-                                          </option>
-                                      {% endfor %}
-                                  </select>
-                              </td>
+                                    <select class="form-select form-select-sm text-end js-discount-select"
+                                            name="discount_line_{{ forloop.counter }}"
+                                            style="width: 90px; margin-left: auto;">
+                                        {% for value, label in discount_choices %}
+                                            <option value="{{ value }}"{% if value == line.discount %} selected{% endif %}>
+                                                {{ label }}
+                                            </option>
+                                        {% endfor %}
+                                    </select>
+                                </td>
 
 
                                 <td class="text-end js-subtotal">
@@ -167,7 +168,6 @@
                                 </td>
 
                                 <td class="text-end">
-                                    
                                     {% if line.product.related_product.exists %}
                                         <button type="button"
                                                 class="btn btn-sm btn-link text-primary p-0 me-2 js-related-line"
@@ -183,9 +183,6 @@
                                         <i class="bi bi-trash fs-7"></i>
                                     </button>
                                 </td>
-                                <input type="hidden"
-                                       name="product_line_{{ forloop.counter }}"
-                                       value="{{ line.product.id }}">
                             </tr>
                         {% endfor %}
                     {% else %}
@@ -432,48 +429,47 @@
     ` : "";
 
     row.innerHTML = `
-      <td>${lineNumber}</td>
-      <td>${partNumber}</td>
-      <td>${productName}</td>
+        <input type="hidden" name="product_line_${lineNumber}" value="${productId}">
+        <td>${lineNumber}</td>
+        <td>${partNumber}</td>
+        <td>${productName}</td>
 
-      <td class="text-end">
-        <input type="number"
-              class="form-control form-control-sm text-end js-qty-input"
-              name="qty_line_${lineNumber}"
-              value="1"
-              min="1"
-              step="1"
-              style="width: 80px; margin-left: auto;">
-      </td>
+        <td class="text-end">
+            <input type="number"
+                class="form-control form-control-sm text-end js-qty-input"
+                name="qty_line_${lineNumber}"
+                value="1"
+                min="1"
+                step="1"
+                style="width: 80px; margin-left: auto;">
+        </td>
 
-      <td class="text-end js-unit-price" data-unit-price="${unitPrice.toFixed(2)}">
-        ${mxnFormatter.format(unitPrice)}
-      </td>
+        <td class="text-end js-unit-price" data-unit-price="${unitPrice.toFixed(2)}">
+            ${mxnFormatter.format(unitPrice)}
+        </td>
 
-      <td class="text-end">
-        <select
-          class="form-select form-select-sm text-end js-discount-select"
-          name="discount_line_${lineNumber}"
-          style="width: 90px; margin-left: auto;">
-          ${discountOptionsHtml}
-        </select>
-      </td>
+        <td class="text-end">
+            <select
+            class="form-select form-select-sm text-end js-discount-select"
+            name="discount_line_${lineNumber}"
+            style="width: 90px; margin-left: auto;">
+            ${discountOptionsHtml}
+            </select>
+        </td>
 
-      <td class="text-end js-subtotal">
-        ${mxnFormatter.format(unitPrice)}
-      </td>
+        <td class="text-end js-subtotal">
+            ${mxnFormatter.format(unitPrice)}
+        </td>
 
-      <td class="text-end" style="width: 60px;">
-        ${relatedButtonHtml}
-        <button type="button"
-                class="btn btn-sm btn-link text-danger p-0 js-delete-line"
-                title="Eliminar línea">
-          <i class="bi bi-trash fs-7"></i>
-        </button>
-      </td>
-      <input type="hidden"
-           name="product_line_${lineNumber}"
-           value="${productId}">
+        <td class="text-end" style="width: 60px;">
+            ${relatedButtonHtml}
+            <button type="button"
+                    class="btn btn-sm btn-link text-danger p-0 js-delete-line"
+                    title="Eliminar línea">
+            <i class="bi bi-trash fs-7"></i>
+            </button>
+        </td>
+      
     `;
 
     tbody.appendChild(row);
