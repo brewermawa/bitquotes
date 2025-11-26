@@ -28,7 +28,7 @@ class QuoteCommentInline(admin.TabularInline):
 
 @admin.register(Quote)
 class QuoteAdmin(admin.ModelAdmin):
-    list_display = ["quote_id", "customer", "contact", "user", "status", "total", "created"]
+    list_display = ["quote_id", "customer", "contact", "user", "status", "created"]
     list_display_links = ["quote_id"]
     search_fields = ["quote_id", "customer__name", "contact__first_name", "contact__last_name", "user__first_name", "user__last_name"]
     list_filter = ["customer", "user", "status", "is_active"]
@@ -38,7 +38,7 @@ class QuoteAdmin(admin.ModelAdmin):
     empty_value_display = "-"
     readonly_fields = [
         "quote_id", "user", "status", "payment_terms", "valid_until", "is_active", "customer", "contact",
-        "sub_total", "discount_total", "tax", "total", "approved_by", "approved_at", "sent_by", "sent_at",
+        "approved_by", "approved_at", "sent_by", "sent_at",
         "won_by", "won_at", "lost_by", "lost_at", "lost_reason", "created", "updated", "created_by",
         "updated_by",
     ]

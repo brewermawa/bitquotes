@@ -77,7 +77,7 @@ def quote_edit(request, pk):
     if request.method == "POST":
         print("cargando en POST")
 
-        print(request.POST)
+        print("---", request.POST)
 
         posted_lines = [key.split("_")[2] for key in request.POST.keys() if key.startswith("product_line_")]
 
@@ -92,27 +92,14 @@ def quote_edit(request, pk):
                 product_ids.append(int(product_id))
 
         products_dict = Product.objects.in_bulk(product_ids)
-        
+
         for line in posted_lines:
             product_id = int(request.POST.get(f"product_line_{line}"))
             quantity = int(request.POST.get(f"qty_line_{line}"))
             discount = int(request.POST.get(f"discount_line_{line}"))
             delivery_time = int(request.POST.get(f"delivery_line_{line}", 0) or 0)
-
-
             product = products_dict[product_id]
-
-            QuoteLine.objects.create(
-                quote=quote,
-                section=quote.assign_section(product),
-                product=product,
-                description=product.name,
-                quantity=quantity,
-                unit_price=product.price,
-                discount=discount,
-                delivery_time=delivery_time
-            )
-                
+            quote.add_product(product, quantity, discount, delivery_time)
 
         payment_terms_form = QuotePaymentTermsForm(request.POST, instance=quote)
 

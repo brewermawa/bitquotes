@@ -49,10 +49,12 @@ class Quote(models.Model):
     # El campo valid_until debe ser el último día del mes cuando se hace la cotización. Si el último día del mes está
     # a menos de 5 días de la fecha de la cotización, valid_until será el día 15 del siguiente mes
     valid_until = models.DateField(verbose_name="Válida hasta", blank=True, null=True)
-    sub_total = models.DecimalField(max_digits=12, decimal_places=2, default=0, validators=[MinValueValidator(0)], verbose_name="Subtotal")
-    discount_total = models.DecimalField(max_digits=12, decimal_places=2, default=0, validators=[MinValueValidator(0)], verbose_name="Descuento")
-    tax = models.DecimalField(max_digits=12, decimal_places=2, default=0, validators=[MinValueValidator(0)], verbose_name="IVA")
-    total = models.DecimalField(max_digits=12, decimal_places=2, default=0, validators=[MinValueValidator(0)], verbose_name="Total")
+
+    #Estos campos se remueven ya que tenémos métodoa para calcularlos
+    #sub_total = models.DecimalField(max_digits=12, decimal_places=2, default=0, validators=[MinValueValidator(0)], verbose_name="Subtotal")
+    #discount_total = models.DecimalField(max_digits=12, decimal_places=2, default=0, validators=[MinValueValidator(0)], verbose_name="Descuento")
+    #tax = models.DecimalField(max_digits=12, decimal_places=2, default=0, validators=[MinValueValidator(0)], verbose_name="IVA")
+    #total = models.DecimalField(max_digits=12, decimal_places=2, default=0, validators=[MinValueValidator(0)], verbose_name="Total")
     is_active = models.BooleanField(default=True, verbose_name="Activa")
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
@@ -90,11 +92,6 @@ class Quote(models.Model):
 
         super().clean()
     
-    def save(self, *args, **kwargs):
-        self.full_clean()
-
-        return super().save(*args, **kwargs)
-    
     def __set_valid_until(self):
         #today = timezone.localdate()
         today = self.created
@@ -113,19 +110,36 @@ class Quote(models.Model):
         date_part = self.created.strftime("%y%m%d")
         pk_part = str(self.pk).zfill(5)
         self.quote_id = f"BIT-{initials}-{date_part}-{pk_part}"
-    
-    def save(self, *args, **kwargs):
-        #grabo el modelo con información parcial para obtener el pk
-        super().save(*args, **kwargs)
 
-        #fecha de validez al último día de mes o al 15 del días siguiente si faltan menos de 5 días
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        super().save(*args, **kwargs)
+        updated = False
+
         if not self.valid_until:
             self.__set_valid_until()
+            updated = True
 
         if not self.quote_id:
             self.__set_quote_id()
-       
-        return super().save(*args, **kwargs)
+            updated = True
+
+        if updated:
+            super().save(update_fields=["valid_until", "quote_id"])
+
+        return self
+    
+    def add_product(self, product, quantity, discount, delivery_time):
+        QuoteLine.objects.create(
+                quote=self,
+                section=self.assign_section(product),
+                product=product,
+                description=product.name,
+                quantity=quantity,
+                unit_price=product.price,
+                discount=discount,
+                delivery_time=delivery_time
+            )
     
     def assign_section(self, product):
         section_type = product.product_type
@@ -137,14 +151,35 @@ class Quote(models.Model):
             section = QuoteSection.objects.create(quote=self, section_type=section_type, name=section_name)
 
         return section
-            
     
+    def get_subtotal(self) -> Decimal:
+        """
+        Subtotal bruto de la cotización (antes de descuentos).
+        Suma de gross_total de todas las líneas.
+        """
+        lines = self.quote_lines.all()
+        return sum((line.gross_total for line in lines), Decimal("0.00"))
+
+    def get_discount(self) -> Decimal:
+        """
+        Total de descuento en pesos de la cotización.
+        Suma de discount_value de todas las líneas.
+        """
+        lines = self.quote_lines.all()
+        return sum((line.discount_value for line in lines), Decimal("0.00"))
+    
+    @property
+    def net_subtotal(self) -> Decimal:
+        """
+        Subtotal neto después de descuentos (base gravable antes de IVA).
+        """
+        return self.get_subtotal() - self.get_discount()
+            
 
 class QuoteSection(models.Model):
     quote = models.ForeignKey(Quote, on_delete=models.CASCADE, related_name="quote_sections")
     name = models.CharField(max_length=50, verbose_name="Sección")
-    section_type = models.CharField(max_length=3, verbose_name="Tipo de sección", default="")
-    sub_total = models.DecimalField(max_digits=12, decimal_places=2, default=0, validators=[MinValueValidator(0)], verbose_name="Subtotal")
+    section_type = models.CharField(max_length=3, choices=Product.ProductType.choices, verbose_name="Tipo de sección")
 
     class Meta:
         verbose_name = "Sección de cotización"
@@ -152,10 +187,22 @@ class QuoteSection(models.Model):
         indexes = [
             models.Index(fields=["name"])
         ]
-        constraints = [models.UniqueConstraint(fields=["name", "quote"], name="unique_section_per_quote")]
+        constraints = [models.UniqueConstraint(fields=["quote", "section_type"], name="unique_section_type_per_quote")]
 
     def __str__(self):
         return f"{self.quote} - {self.name}"
+    
+    def get_subtotal(self) -> Decimal:
+        lines = self.section_lines.all()
+        return sum((line.gross_total for line in lines), Decimal("0.00"))
+
+    def get_discount(self) -> Decimal:
+        lines = self.section_lines.all()
+        return sum((line.discount_value for line in lines), Decimal("0.00"))
+    
+    @property
+    def net_subtotal(self) -> Decimal:
+        return self.get_subtotal() - self.get_discount()
     
 
 class QuoteLine(models.Model):

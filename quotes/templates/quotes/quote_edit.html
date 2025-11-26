@@ -131,8 +131,8 @@
 
                     {% if quote.quote_lines.exists %}
                         {% for line in quote_lines %}
-                            <input type="hidden" name="product_line_{{ forloop.counter }}" value="{{ line.product.id }}">
                             <tr data-product-id="{{ line.product.id }}">
+                                <input type="hidden" name="product_line_{{ forloop.counter }}" value="{{ line.product.id }}">
                                 <td>{{ forloop.counter }}</td>
                                 <td>{{ line.product.sku }}</td>
                                 <td>{{ line.description }}</td>
