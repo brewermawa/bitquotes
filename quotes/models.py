@@ -127,10 +127,23 @@ class Quote(models.Model):
        
         return super().save(*args, **kwargs)
     
+    def assign_section(self, product):
+        section_type = product.product_type
+        section_name = product.get_product_type_display()
+
+        section = QuoteSection.objects.filter(quote=self, section_type=section_type).first()
+
+        if not section: #No existe la sección
+            section = QuoteSection.objects.create(quote=self, section_type=section_type, name=section_name)
+
+        return section
+            
+    
 
 class QuoteSection(models.Model):
-    name = models.CharField(max_length=50, verbose_name="Sección")
     quote = models.ForeignKey(Quote, on_delete=models.CASCADE, related_name="quote_sections")
+    name = models.CharField(max_length=50, verbose_name="Sección")
+    section_type = models.CharField(max_length=3, verbose_name="Tipo de sección", default="")
     sub_total = models.DecimalField(max_digits=12, decimal_places=2, default=0, validators=[MinValueValidator(0)], verbose_name="Subtotal")
 
     class Meta:

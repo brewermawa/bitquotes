@@ -116,12 +116,13 @@
                 <thead class="table-light">
                     <tr class="text-muted small">
                         <th style="width: 40px;">#</th>
-                        <th style="width: 140px;">Núm. de parte</th>
+                        <th style="width: 120px;">Núm. parte</th>
                         <th>Nombre del producto</th>
-                        <th style="width: 100px;" class="text-end">Cantidad</th>
-                        <th style="width: 140px;" class="text-end">Precio unitario</th>
-                        <th style="width: 120px;" class="text-end">Descuento</th>
-                        <th style="width: 140px;" class="text-end">Subtotal</th>
+                        <th style="width: 90px;" class="text-end">Cantidad</th>
+                        <th style="width: 110px;" class="text-end">Precio</th>
+                        <th style="width: 90px;" class="text-end">Descuento</th>
+                        <th style="width: 90px;" class="text-end">T. E. (días)</th>
+                        <th style="width: 100px;" class="text-end">Subtotal</th>
                         <th style="width: 60px;"></th>
                     </tr>
                 </thead>
@@ -130,8 +131,8 @@
 
                     {% if quote.quote_lines.exists %}
                         {% for line in quote_lines %}
+                            <input type="hidden" name="product_line_{{ forloop.counter }}" value="{{ line.product.id }}">
                             <tr data-product-id="{{ line.product.id }}">
-                                <input type="hidden" name="product_line_{{ forloop.counter }}" value="{{ line.product.id }}">
                                 <td>{{ forloop.counter }}</td>
                                 <td>{{ line.product.sku }}</td>
                                 <td>{{ line.description }}</td>
@@ -143,7 +144,7 @@
                                            value="{{ line.quantity }}"
                                            min="1"
                                            step="1"
-                                           style="width: 80px; margin-left: auto;">
+                                           style="width: 60px; margin-left: auto;">
                                 </td>
 
                                 <td class="text-end js-unit-price" data-unit-price="{{ line.unit_price }}">
@@ -153,7 +154,7 @@
                                 <td class="text-end">
                                     <select class="form-select form-select-sm text-end js-discount-select"
                                             name="discount_line_{{ forloop.counter }}"
-                                            style="width: 90px; margin-left: auto;">
+                                            style="width: 70px; margin-left: auto;">
                                         {% for value, label in discount_choices %}
                                             <option value="{{ value }}"{% if value == line.discount %} selected{% endif %}>
                                                 {{ label }}
@@ -162,10 +163,17 @@
                                     </select>
                                 </td>
 
-
-                                <td class="text-end js-subtotal">
-                                    {{ line.unit_price }}
+                                <td class="text-end">
+                                    <input type="number"
+                                        class="form-control form-control-sm text-end"
+                                        name="delivery_line_{{ forloop.counter }}"
+                                        value="{{ line.delivery_time|default:0 }}"
+                                        min="0"
+                                        step="1"
+                                        style="width: 60px; margin-left: auto;">
                                 </td>
+
+                                <td class="text-end js-subtotal"></td>
 
                                 <td class="text-end">
                                     {% if line.product.related_product.exists %}
@@ -187,7 +195,7 @@
                         {% endfor %}
                     {% else %}
                         <tr id="empty-quote-row">
-                            <td colspan="8" class="text-muted text-center py-3">
+                            <td colspan="9" class="text-muted text-center py-3">
                                 Aún no hay productos en esta cotización
                             </td>
                         </tr>
@@ -441,7 +449,7 @@
                 value="1"
                 min="1"
                 step="1"
-                style="width: 80px; margin-left: auto;">
+                style="width: 60px; margin-left: auto;">
         </td>
 
         <td class="text-end js-unit-price" data-unit-price="${unitPrice.toFixed(2)}">
@@ -452,9 +460,19 @@
             <select
             class="form-select form-select-sm text-end js-discount-select"
             name="discount_line_${lineNumber}"
-            style="width: 90px; margin-left: auto;">
+            style="width: 70px; margin-left: auto;">
             ${discountOptionsHtml}
             </select>
+        </td>
+
+        <td class="text-end">
+            <input type="number"
+                class="form-control form-control-sm text-end"
+                name="delivery_line_${lineNumber}"
+                value="0"
+                min="0"
+                step="1"
+                style="width: 60px; margin-left: auto;">
         </td>
 
         <td class="text-end js-subtotal">
@@ -515,7 +533,7 @@
             if (!hasLines) {
               tbody.innerHTML = `
                 <tr id="empty-quote-row">
-                  <td colspan="7" class="text-muted text-center py-3">
+                  <td colspan="9" class="text-muted text-center py-3">
                     Aún no hay productos en esta cotización.
                   </td>
                 </tr>
@@ -535,6 +553,12 @@
           recalcRowSubtotal(row);
         }
       });
+
+      tbody.querySelectorAll(".js-unit-price").forEach(cell => {
+        const value = parseFloat(cell.dataset.unitPrice || "0");
+        cell.textContent = mxnFormatter.format(value);
+      });
+
 
       renumberLines();
       recalcTotals();
@@ -593,7 +617,7 @@
             newRow.classList.add("related-products-row");
 
             newRow.innerHTML = `
-              <td colspan="8">
+              <td colspan="9">
                 <div class="fade-slide-in">
                   ${html}
                 </div>

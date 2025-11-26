@@ -6,7 +6,7 @@ from django.urls import reverse_lazy, reverse
 from django.http import HttpResponseBadRequest, HttpResponse
 from django.db.models import Q
 
-from .models import Quote, QuoteLine
+from .models import Quote, QuoteLine, QuoteSection
 from .forms import QuoteHeadForm, QuotePaymentTermsForm, QuoteLineForm
 from users.models import CustomUser
 from customers.models import Contact
@@ -77,14 +77,13 @@ def quote_edit(request, pk):
     if request.method == "POST":
         print("cargando en POST")
 
+        print(request.POST)
+
         posted_lines = [key.split("_")[2] for key in request.POST.keys() if key.startswith("product_line_")]
 
         #obtener las líneas existentes en la cotización
-        quote_lines = QuoteLine.objects.filter(quote=quote)
-
-        #Si existen líneas, borrarlas
-        if quote_lines:
-            quote_lines.delete()
+        QuoteLine.objects.filter(quote=quote).delete()
+        QuoteSection.objects.filter(quote=quote).delete()
 
         product_ids = []
         for line in posted_lines:
@@ -98,16 +97,20 @@ def quote_edit(request, pk):
             product_id = int(request.POST.get(f"product_line_{line}"))
             quantity = int(request.POST.get(f"qty_line_{line}"))
             discount = int(request.POST.get(f"discount_line_{line}"))
+            delivery_time = int(request.POST.get(f"delivery_line_{line}", 0) or 0)
+
 
             product = products_dict[product_id]
 
             QuoteLine.objects.create(
                 quote=quote,
+                section=quote.assign_section(product),
                 product=product,
                 description=product.name,
                 quantity=quantity,
                 unit_price=product.price,
-                discount=discount
+                discount=discount,
+                delivery_time=delivery_time
             )
                 
 
