@@ -78,14 +78,28 @@ def quote_edit(request, pk):
         print("cargando en POST")
 
         posted_lines = [key.split("_")[2] for key in request.POST.keys() if key.startswith("product_line_")]
-        print("Líneas encontradas:", posted_lines)
+
+        #obtener las líneas existentes en la cotización
+        quote_lines = QuoteLine.objects.filter(quote=quote)
+
+        #Si existen líneas, borrarlas
+        if quote_lines:
+            quote_lines.delete()
+
+        product_ids = []
+        for line in posted_lines:
+            product_id = request.POST.get(f"product_line_{line}")
+            if product_id:
+                product_ids.append(int(product_id))
+
+        products_dict = Product.objects.in_bulk(product_ids)
         
         for line in posted_lines:
             product_id = int(request.POST.get(f"product_line_{line}"))
             quantity = int(request.POST.get(f"qty_line_{line}"))
             discount = int(request.POST.get(f"discount_line_{line}"))
 
-            product = Product.objects.get(pk=product_id)
+            product = products_dict[product_id]
 
             QuoteLine.objects.create(
                 quote=quote,
@@ -95,6 +109,7 @@ def quote_edit(request, pk):
                 unit_price=product.price,
                 discount=discount
             )
+                
 
         payment_terms_form = QuotePaymentTermsForm(request.POST, instance=quote)
 
