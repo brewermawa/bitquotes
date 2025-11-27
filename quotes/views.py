@@ -11,6 +11,7 @@ from .forms import QuoteHeadForm, QuotePaymentTermsForm, QuoteLineForm
 from users.models import CustomUser
 from customers.models import Contact
 from catalog.models import Product
+from customers.models import Customer
 
 @login_required
 def dashboard(request):
@@ -22,6 +23,20 @@ class QuoteListView(LoginRequiredMixin, ListView):
     template_name = "quotes/quotes_list.html"
     context_object_name = "quotes"
     ordering = "-created"
+
+    def get_queryset(self):
+        slug = self.kwargs.get("slug")
+        queryset = super().get_queryset()
+
+        return queryset.filter(customer__slug=slug) if slug else queryset
+    
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+
+        context["users"] = CustomUser.objects.all()
+        context["can_see_all_quotes"] = self.request.user.profile.is_csr or self.request.user.profile.is_manager
+        
+        return context
 
 class QuoteHeadCreateView(LoginRequiredMixin, CreateView):
     model = Quote

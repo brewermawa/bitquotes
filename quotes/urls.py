@@ -7,6 +7,7 @@ app_name = "quotes"
 urlpatterns = [
     path("", views.dashboard, name="dashboard"),
     path("list/", views.QuoteListView.as_view(), name="quote_list"),
+    path("list/<slug:slug>", views.QuoteListView.as_view(), name="quote_list_customer"),
     
     # PASO 1: encabezado de cotización
     path("new/", views.QuoteHeadCreateView.as_view(), name="quote_create"),
