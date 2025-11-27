@@ -174,6 +174,11 @@ class Quote(models.Model):
         Subtotal neto después de descuentos (base gravable antes de IVA).
         """
         return self.get_subtotal() - self.get_discount()
+    
+    @property
+    def total(self) -> Decimal:
+        
+        return (self.get_subtotal() - self.get_discount()) * Decimal(1.16)
             
 
 class QuoteSection(models.Model):

@@ -1,3 +1,30 @@
+/* Tamaño de fuente global más pequeño */
+html, body {
+  font-size: 0.875rem; /* ~14px */
+}
+
+/* Jerarquía de títulos */
+h1, .h1 { font-size: 1.75rem; }
+h2, .h2 { font-size: 1.5rem; }
+h3, .h3 { font-size: 1.25rem; }
+
+/* Tablas más compactas */
+.table {
+  font-size: 0.85rem;
+}
+
+/* Formularios y selects */
+.form-control,
+.form-select {
+  font-size: 0.85rem;
+}
+
+/* Botones */
+.btn {
+  font-size: 0.85rem;
+}
+
+
 .nav-link.active {
     color: #4cc2ff !important;
     text-decoration: none !important;

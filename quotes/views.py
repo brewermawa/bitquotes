@@ -17,8 +17,11 @@ def dashboard(request):
     return render(request, "quotes/dashboard.html")
 
 
-def quote_list(request):
-    return render(request, "quotes/quotes_list.html", {})
+class QuoteListView(LoginRequiredMixin, ListView):
+    model = Quote
+    template_name = "quotes/quotes_list.html"
+    context_object_name = "quotes"
+    ordering = "-created"
 
 class QuoteHeadCreateView(LoginRequiredMixin, CreateView):
     model = Quote
@@ -39,9 +42,7 @@ class QuoteHeadCreateView(LoginRequiredMixin, CreateView):
         if not self.request.user.profile.is_csr and not self.request.user.profile.is_manager:
             form.instance.user = self.request.user
 
-        print("***********************")
         response = super().form_valid(form)
-        print("---", self.object.pk)
 
         return response
     
