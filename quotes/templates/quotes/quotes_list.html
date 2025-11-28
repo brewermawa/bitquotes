@@ -11,6 +11,18 @@
                 <i class="bi bi-file-earmark-text"></i> Cotizaciones
             </h1>
             <small class="text-muted">Listado general de cotizaciones</small>
+            {% if can_see_all_quotes and selected_user_id %}
+                {% for u in users %}
+                    {% if selected_user_id == u.id|stringformat:"s" %}
+                        <div class="mt-1">
+                            <span class="badge bg-light text-muted border">
+                                Mostrando cotizaciones de:
+                                <strong>{{ u.get_full_name|default:u.username }}</strong>
+                            </span>
+                        </div>
+                    {% endif %}
+                {% endfor %}
+            {% endif %}
         </div>
 
         <div class="d-flex flex-column align-items-end gap-2">
@@ -18,6 +30,15 @@
                class="btn btn-primary d-flex align-items-center gap-2">
                 <i class="bi bi-plus-circle"></i> <span>Nueva cotización</span>
             </a>
+
+            {# Botón para ver todas las cotizaciones #}
+            {% if slug or selected_user_id %}
+                <a href="{% url 'quotes:quote_list' %}"
+                   class="btn btn-sm btn-outline-secondary d-flex align-items-center gap-2">
+                    <i class="bi bi-list-ul"></i>
+                    <span>Ver todas las cotizaciones</span>
+                </a>
+            {% endif %}
 
             {% if can_see_all_quotes %}
                 <form method="get" class="d-flex align-items-center gap-2">
@@ -32,7 +53,7 @@
                         <option value="">Todos</option>
                         {% for u in users %}
                             <option value="{{ u.id }}"
-                                {% if selected_user_id and selected_user_id|stringformat:"s" == u.id|stringformat:"s" %}
+                                {% if selected_user_id == u.id|stringformat:"s" %}
                                     selected
                                 {% endif %}>
                                 {{ u.get_full_name|default:u.username }}

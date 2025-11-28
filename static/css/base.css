@@ -43,3 +43,12 @@ h3, .h3 { font-size: 1.25rem; }
 .list-group-item.list-group-item-action:hover {
     background-color: #dee2ff !important;
 }
+
+.subtotal-col {
+    width: 130px; /* ajusta si quieres más o menos ancho */
+}
+
+.btn-sm {
+    padding: 0.25rem 0.55rem;
+    font-size: .78rem;
+}

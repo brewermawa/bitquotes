@@ -29,14 +29,6 @@ class CustomerListBase(LoginRequiredMixin, ListView):
                 
         return queryset
 
-    """
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context["users"] = CustomUser.objects.filter(is_active=True)
-
-        return context
-    """
-    
     def paginate_queryset(self, queryset, page_size):
         paginator = self.get_paginator(queryset, page_size)
         page = self.request.GET.get(self.page_kwarg, 1)

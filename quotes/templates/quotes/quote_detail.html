@@ -1,211 +1,403 @@
 {% extends "base.html" %}
 
-{% block title %} - Detalle cotización {{ quote.id }}{% endblock %}
+{% block title %} - Detalle de cotización{% endblock %}
 {% block nav_active_cotizaciones %}active{% endblock %}
 
 {% block content_header %}
-  <div class="d-flex align-items-end justify-content-between mt-3 mb-2">
-    <div>
-      <h1 class="h4 mb-1 d-flex align-items-center gap-2">
-        <i class="bi bi-receipt"></i> Detalle de cotización
-      </h1>
+<div class="row mt-3 mb-2 align-items-start">
 
-      {# Número de cotización, ej. BIT-MG-251029-00009 #}
-      <div class="mb-1">
-        <span class="badge bg-light text-dark border">
-          {{ quote.quote_id }}
-        </span>
-      </div>
+    <!-- IZQUIERDA: info de la cotización -->
+    <div class="col-md-4 col-lg-4">
+        <h1 class="h4 mb-2 d-flex align-items-center gap-2">
+            <i class="bi bi-receipt"></i>
+            <span>Detalle de cotización</span>
+        </h1>
 
-      <small class="text-muted d-block">
-        Cliente: {{ quote.customer.name }}
-        {% if quote.contact %}
-          — Contacto: {{ quote.contact.full_name }}
-        {% endif %}
-      </small>
+        <div class="mb-2">
+            <span class="badge bg-light text-dark border px-3 py-2 fs-6">
+                COT-002134
+            </span>
+        </div>
 
-      {% if quote.user %}
         <small class="text-muted d-block">
-          Asignado a: {{ quote.user.get_full_name|default:quote.user.username }}
+            Cliente: <strong>Industria Metalúrgica S.A.</strong>
+             — Contacto: <strong>Carlos Pérez</strong>
         </small>
-      {% endif %}
-
-      {# Términos de pago #}
-      <small class="text-muted d-block">
-        Términos de pago:
-        <strong>{{ quote.get_payment_terms_display }}</strong>
-      </small>
-      ---
-      <form action="">
-        {% csrf_token %}
-        {{ payment_terms_form.as_p }}
-      </form>
-      ---
+        <small class="text-muted d-block">
+            Vendedor: <strong>Juan Hernández</strong>
+        </small>
+        <small class="text-muted d-block">
+            Términos de pago: <strong>Crédito 15 días</strong>
+        </small>
+        <small class="text-muted d-block">
+            Estatus:
+            <span class="badge text-bg-secondary">Borrador</span>
+        </small>
+        <small class="text-muted d-block">
+            Creada:
+            <strong>27 Noviembre 2025 — 15:32</strong>
+             — Vigencia: <strong>30 días</strong>
+        </small>
     </div>
 
-    <div class="text-end">
-      <a href="{% url 'quotes:quote_list' %}" class="btn btn-outline-secondary d-flex align-items-center gap-2">
-        <i class="bi bi-arrow-left"></i><span>Regresar</span>
-      </a>
+    <!-- DERECHA: toolbar tipo CRM, con historial -->
+    <div class="col-md-8 col-lg-8 d-flex justify-content-end">
+        <div class="card border-0 bg-light w-100">
+            <div class="card-body py-2 px-3">
+                <!-- Barra principal: estatus + botones -->
+                <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
+
+                    <!-- Lado izquierdo: estatus / última actualización -->
+                    <div class="small text-muted">
+                        <div class="d-flex align-items-center flex-wrap gap-2">
+                            <span class="badge rounded-pill text-bg-secondary">
+                                Borrador
+                            </span>
+                            <span>
+                                Última actualización:
+                                <strong>27 Nov 2025 — 16:10</strong>
+                            </span>
+                        </div>
+                    </div>
+
+                    <!-- Lado derecho: acciones principales -->
+                    <div class="btn-toolbar d-flex flex-wrap gap-2 justify-content-end">
+
+                        <!-- Editar / PDF -->
+                        <div class="btn-group btn-group-sm" role="group">
+                            <a href="#" class="btn btn-outline-secondary">
+                                <i class="bi bi-pencil me-1"></i> Editar
+                            </a>
+                            <a href="#" class="btn btn-outline-primary">
+                                <i class="bi bi-filetype-pdf me-1"></i> PDF
+                            </a>
+                        </div>
+
+                        <!-- Enviar -->
+                        <div class="btn-group btn-group-sm" role="group">
+                            <button type="button" class="btn btn-outline-primary">
+                                <i class="bi bi-envelope-arrow-up me-1"></i> Enviar
+                            </button>
+                        </div>
+
+                        <!-- Estatus -->
+                        <div class="btn-group btn-group-sm" role="group">
+                            <button type="button" class="btn btn-outline-success">
+                                <i class="bi bi-trophy me-1"></i> Ganada
+                            </button>
+                            <button type="button" class="btn btn-outline-danger">
+                                <i class="bi bi-x-octagon me-1"></i> Perdida
+                            </button>
+                        </div>
+
+                    </div>
+                </div>
+
+                <!-- HISTORIAL DE ESTATUS: tabla / mini-timeline -->
+                <div class="mt-3 pt-2 border-top">
+                    <div class="small text-muted mb-1">
+                        Historial de estatus
+                    </div>
+                    <ul class="list-unstyled mb-0 small">
+                        <li class="d-flex justify-content-between align-items-center mb-1">
+                            <div class="d-flex align-items-center gap-2">
+                                <i class="bi bi-circle-fill text-secondary" style="font-size: 0.55rem;"></i>
+                                <span>Creada</span>
+                            </div>
+                            <span class="text-muted">27 Nov 2025</span>
+                        </li>
+                        <li class="d-flex justify-content-between align-items-center mb-1">
+                            <div class="d-flex align-items-center gap-2">
+                                <i class="bi bi-circle-fill text-success" style="font-size: 0.55rem;"></i>
+                                <span>Aprobada</span>
+                            </div>
+                            <span class="text-muted">28 Nov 2025</span>
+                        </li>
+                        <li class="d-flex justify-content-between align-items-center mb-1">
+                            <div class="d-flex align-items-center gap-2">
+                                <i class="bi bi-circle-fill text-primary" style="font-size: 0.55rem;"></i>
+                                <span>Enviada</span>
+                            </div>
+                            <span class="text-muted">28 Nov 2025</span>
+                        </li>
+                        <li class="d-flex justify-content-between align-items-center">
+                            <div class="d-flex align-items-center gap-2">
+                                <i class="bi bi-circle-fill text-success" style="font-size: 0.55rem;"></i>
+                                <span>Ganada</span>
+                            </div>
+                            <span class="text-muted">2 Dic 2025</span>
+                        </li>
+                    </ul>
+                </div>
+
+            </div>
+        </div>
     </div>
-  </div>
-  <hr class="mt-2 mb-3">
+</div>
+
+<hr class="mt-3 mb-3">
 {% endblock content_header %}
 
 {% block content %}
+<div class="row">
 
-  {# Errores del form de línea #}
-  {% if line_form.non_field_errors %}
-    <div class="alert alert-danger">
-      {{ line_form.non_field_errors }}
-    </div>
-  {% endif %}
+    <!-- COLUMNA IZQUIERDA: secciones + comentarios -->
+    <div class="col-lg-8">
 
-  <form method="post" class="card shadow-sm p-4">
-    {% csrf_token %}
-
-    <h2 class="h5 mb-3 d-flex align-items-center gap-2">
-      <i class="bi bi-list-ol"></i> Líneas de cotización
-    </h2>
-
-    <div class="table-responsive">
-      <table class="table table-sm align-middle">
-        <thead class="table-light">
-          <tr>
-            <th style="width: 40px;">#</th>
-            <th style="width: 140px;">Núm. de parte</th>
-            <th>Nombre producto</th>
-            <th style="width: 100px;" class="text-end">Cantidad</th>
-            <th style="width: 140px;" class="text-end">Precio unitario</th>
-            <th style="width: 120px;" class="text-end">Descuento</th>
-            <th style="width: 140px;" class="text-end">Subtotal línea</th>
-          </tr>
-        </thead>
-        <tbody>
-          {# Líneas ya guardadas #}
-          {% if lines %}
-            {% for line in lines %}
-              <tr>
-                <td>{{ forloop.counter }}</td>
-                <td>{{ line.num_part }}</td> {# ajusta al nombre real del campo #}
-                <td>{{ line.product_name }}</td> {# ajusta al nombre real #}
-                <td class="text-end">{{ line.quantity }}</td>
-                <td class="text-end">
-                  {{ line.unit_price|floatformat:2 }}
-                </td>
-                <td class="text-end">
-                  {% if line.discount %}
-                    {{ line.discount }}%
-                  {% else %}
-                    0%
-                  {% endif %}
-                </td>
-                <td class="text-end">
-                  {{ line.subtotal|floatformat:2 }}
-                </td>
-              </tr>
-            {% endfor %}
-          {% else %}
-            <tr>
-              <td colspan="7" class="text-muted text-center py-3">
-                Aún no hay productos en esta cotización. Agrega la primera línea abajo.
-              </td>
-            </tr>
-          {% endif %}
-
-          {# Fila de captura de nueva línea #}
-          <tr class="table-secondary">
-            <td class="fw-semibold">
-              {% if lines %}
-                {{ lines|length|add:"1" }}
-              {% else %}
-                1
-              {% endif %}
-            </td>
-
-            <td>
-              {{ line_form.num_part }}
-              {% if line_form.num_part.errors %}
-                <div class="invalid-feedback d-block">
-                  {{ line_form.num_part.errors.0 }}
+        <!-- ========== SECCIÓN 1 ========== -->
+        <div class="card mb-3">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <strong>Plotters HP DesignJet</strong>
+                <div class="text-end">
+                    <span class="text-muted small d-block">Total sección</span>
+                    <strong class="font-monospace">$45,500.00</strong>
                 </div>
-              {% endif %}
-            </td>
+            </div>
 
-            <td>
-              {{ line_form.product_name }}
-              {% if line_form.product_name.errors %}
-                <div class="invalid-feedback d-block">
-                  {{ line_form.product_name.errors.0 }}
+            <div class="card-body p-0">
+                <table class="table table-sm mb-0 align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th style="width:40px;">#</th>
+                            <th style="width:120px;">Núm. parte</th>
+                            <th>Producto</th>
+                            <th class="text-end" style="width:70px;">Cant.</th>
+                            <th class="text-end" style="width:110px;">Precio</th>
+                            <th class="text-end" style="width:80px;">Desc.</th>
+                            <th class="text-end" style="width:70px;">T.E.</th>
+                            <th class="text-end" style="width:140px;">Subtotal</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>1</td>
+                            <td><span class="font-monospace">T650-24</span></td>
+                            <td>HP DesignJet T650 24"</td>
+                            <td class="text-end">1</td>
+                            <td class="text-end">$32,000.00</td>
+                            <td class="text-end">5%</td>
+                            <td class="text-end">3</td>
+                            <td class="text-end fw-semibold">$30,400.00</td>
+                        </tr>
+                        <tr>
+                            <td>2</td>
+                            <td><span class="font-monospace">T850-36</span></td>
+                            <td>HP DesignJet T850 36"</td>
+                            <td class="text-end">1</td>
+                            <td class="text-end">$15,000.00</td>
+                            <td class="text-end">0%</td>
+                            <td class="text-end">5</td>
+                            <td class="text-end fw-semibold">$15,000.00</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <div class="px-3 py-2 border-top bg-light small" style="max-width:260px; margin-left:auto;">
+                    <div class="d-flex justify-content-between mb-1">
+                        <span class="text-muted">Subtotal</span>
+                        <span class="font-monospace">$47,000.00</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-1">
+                        <span class="text-muted">Descuento</span>
+                        <span class="font-monospace">$1,500.00</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-1">
+                        <span class="text-muted">IVA (16%)</span>
+                        <span class="font-monospace">$7,520.00</span>
+                    </div>
+                    <hr class="my-1">
+                    <div class="d-flex justify-content-between fw-semibold">
+                        <span>Total sección</span>
+                        <span class="font-monospace">$53,020.00</span>
+                    </div>
                 </div>
-              {% endif %}
-            </td>
-
-            <td>
-              <div class="text-end">
-                {{ line_form.quantity }}
-              </div>
-              {% if line_form.quantity.errors %}
-                <div class="invalid-feedback d-block text-end">
-                  {{ line_form.quantity.errors.0 }}
-                </div>
-              {% endif %}
-            </td>
-
-            <td>
-              <div class="text-end">
-                {{ line_form.unit_price }}
-              </div>
-              {% if line_form.unit_price.errors %}
-                <div class="invalid-feedback d-block text-end">
-                  {{ line_form.unit_price.errors.0 }}
-                </div>
-              {% endif %}
-            </td>
-
-            <td>
-              <div class="text-end">
-                {{ line_form.discount }}
-              </div>
-              {% if line_form.discount.errors %}
-                <div class="invalid-feedback d-block text-end">
-                  {{ line_form.discount.errors.0 }}
-                </div>
-              {% endif %}
-            </td>
-
-            <td class="text-end text-muted">
-              {# El subtotal de la nueva línea se calculará al guardar.
-                 Aquí solo mostramos un placeholder. #}
-              —
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-
-    {# Total de la cotización (si ya lo calculas en la vista) #}
-    {% if quote.total %}
-      <div class="d-flex justify-content-end mt-2">
-        <div class="text-end">
-          <div class="small text-muted">Total cotización</div>
-          <div class="fs-5 fw-semibold">
-            {{ quote.total|floatformat:2 }}
-          </div>
+            </div>
         </div>
-      </div>
-    {% endif %}
 
-    <hr class="my-4">
+        <!-- ========== SECCIÓN 2 ========== -->
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <strong>Tintas y accesorios</strong>
+                <div class="text-end">
+                    <span class="text-muted small d-block">Total sección</span>
+                    <strong class="font-monospace">$5,650.00</strong>
+                </div>
+            </div>
 
-    <div class="d-flex justify-content-end gap-2">
-      <button type="submit" name="action" value="finish" class="btn btn-outline-primary">
-        <i class="bi bi-check2-circle"></i> Guardar detalle y salir
-      </button>
-      <button type="submit" name="action" value="add" class="btn btn-primary">
-        <i class="bi bi-plus-circle"></i> Guardar línea y agregar otra
-      </button>
+            <div class="card-body p-0">
+                <table class="table table-sm mb-0 align-middle">
+                    <thead class="table-light">
+                        <tr>
+                            <th style="width:40px;">#</th>
+                            <th style="width:120px;">Núm. parte</th>
+                            <th>Producto</th>
+                            <th class="text-end" style="width:70px;">Cant.</th>
+                            <th class="text-end" style="width:110px;">Precio</th>
+                            <th class="text-end" style="width:80px;">Desc.</th>
+                            <th class="text-end" style="width:70px;">T.E.</th>
+                            <th class="text-end" style="width:140px;">Subtotal</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td>1</td>
+                            <td><span class="font-monospace">C1Q10A</span></td>
+                            <td>Cartucho HP 711 Negro</td>
+                            <td class="text-end">2</td>
+                            <td class="text-end">$800.00</td>
+                            <td class="text-end">0%</td>
+                            <td class="text-end">1</td>
+                            <td class="text-end fw-semibold">$1,600.00</td>
+                        </tr>
+                        <tr>
+                            <td>2</td>
+                            <td><span class="font-monospace">C1Q12A</span></td>
+                            <td>Cartucho HP 711 Cian</td>
+                            <td class="text-end">3</td>
+                            <td class="text-end">$650.00</td>
+                            <td class="text-end">0%</td>
+                            <td class="text-end">1</td>
+                            <td class="text-end fw-semibold">$1,950.00</td>
+                        </tr>
+                    </tbody>
+                </table>
+
+                <div class="px-3 py-2 border-top bg-light small" style="max-width:260px; margin-left:auto;">
+                    <div class="d-flex justify-content-between mb-1">
+                        <span class="text-muted">Subtotal</span>
+                        <span class="font-monospace">$3,550.00</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-1">
+                        <span class="text-muted">Descuento</span>
+                        <span class="font-monospace">$0.00</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-1">
+                        <span class="text-muted">IVA (16%)</span>
+                        <span class="font-monospace">$568.00</span>
+                    </div>
+                    <hr class="my-1">
+                    <div class="d-flex justify-content-between fw-semibold">
+                        <span>Total sección</span>
+                        <span class="font-monospace">$4,118.00</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- COMENTARIOS -->
+        <div class="card mb-4">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <div class="d-flex align-items-center gap-2">
+                    <i class="bi bi-chat-text"></i>
+                    <strong>Comentarios</strong>
+                </div>
+                <span class="badge text-bg-light text-muted small">2 comentarios</span>
+            </div>
+
+            <div class="card-body">
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between">
+                        <strong class="small">Juan Hernández</strong>
+                        <small class="text-muted">27 Nov 2025 — 16:10</small>
+                    </div>
+                    <p class="small mb-1">
+                        Cliente pidió incluir instalación básica en sitio.
+                    </p>
+                </div>
+
+                <hr class="my-2">
+
+                <div class="mb-3">
+                    <div class="d-flex justify-content-between">
+                        <strong class="small">Soporte BIT</strong>
+                        <small class="text-muted">27 Nov 2025 — 17:45</small>
+                    </div>
+                    <p class="small mb-1">
+                        Se validó disponibilidad de equipo en HP.
+                    </p>
+                </div>
+
+                <hr class="my-3">
+
+                <form>
+                    <div class="mb-2">
+                        <label class="form-label small fw-semibold">Agregar comentario</label>
+                        <textarea class="form-control form-control-sm"
+                                  rows="3"
+                                  placeholder="Escribe una nota interna…"></textarea>
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center">
+                        <div class="form-check small">
+                            <input class="form-check-input" type="checkbox" id="importantCheck">
+                            <label class="form-check-label" for="importantCheck">
+                                Marcar como importante
+                            </label>
+                        </div>
+
+                        <button type="submit" class="btn btn-sm btn-primary">
+                            <i class="bi bi-send me-1"></i> Guardar
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
     </div>
-  </form>
 
+    <!-- COLUMNA DERECHA: resumen + condiciones -->
+    <div class="col-lg-4">
+        <div class="sticky-top" style="top: 90px;">
+
+            <!-- RESUMEN GENERAL -->
+            <div class="card border-0 bg-light mb-3">
+                <div class="card-body py-3">
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted">Subtotal</span>
+                        <span class="font-monospace">$51,150.00</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted">Descuento</span>
+                        <span class="font-monospace text-danger">- $4,900.00</span>
+                    </div>
+                    <div class="d-flex justify-content-between mb-2">
+                        <span class="text-muted">IVA (16%)</span>
+                        <span class="font-monospace">$7,395.00</span>
+                    </div>
+
+                    <hr class="my-2">
+
+                    <div class="d-flex justify-content-between align-items-baseline mb-1">
+                        <span class="fw-semibold">Total</span>
+                        <span class="fw-bold fs-5 font-monospace">$53,645.00</span>
+                    </div>
+
+                    <small class="text-muted d-block">
+                        Moneda: MXN — Precios en pesos mexicanos.
+                    </small>
+                </div>
+            </div>
+
+            <!-- CONDICIONES COMERCIALES (DUMMY) -->
+            <div class="card mb-4">
+                <div class="card-header py-2">
+                    <strong class="small">Condiciones comerciales</strong>
+                </div>
+                <div class="card-body small">
+                    <ul class="mb-2 ps-3">
+                        <li>Precios sujetos a cambio sin previo aviso.</li>
+                        <li>Entrega estimada: 3–5 días hábiles.</li>
+                        <li>Garantía según políticas del fabricante.</li>
+                        <li>Instalación básica incluida (si aplica).</li>
+                    </ul>
+                    <span class="badge rounded-pill text-bg-light border small">
+                        Vigencia: 30 días
+                    </span>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+</div>
 {% endblock content %}

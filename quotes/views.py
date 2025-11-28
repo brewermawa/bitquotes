@@ -1,10 +1,11 @@
-from django.shortcuts import render, get_object_or_404
+from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.views.generic import ListView, CreateView
 from django.contrib.auth.mixins import LoginRequiredMixin
 from django.urls import reverse_lazy, reverse
 from django.http import HttpResponseBadRequest, HttpResponse
 from django.db.models import Q
+from django.contrib import messages
 
 from .models import Quote, QuoteLine, QuoteSection
 from .forms import QuoteHeadForm, QuotePaymentTermsForm, QuoteLineForm
@@ -23,26 +24,45 @@ class QuoteListView(LoginRequiredMixin, ListView):
     template_name = "quotes/quotes_list.html"
     context_object_name = "quotes"
     ordering = "-created"
+    paginate_by = 10
 
     def get_queryset(self):
-        slug = self.kwargs.get("slug")
         queryset = super().get_queryset()
+        slug = self.kwargs.get("slug")
+        if slug:
+            queryset = queryset.filter(customer__slug=slug)
 
-        return queryset.filter(customer__slug=slug) if slug else queryset
+        user = self.request.user
+        if not (user.profile.is_csr or user.profile.is_manager):
+            queryset = queryset.filter(user=user)
+
+        selected_user_id = self.request.GET.get("user")
+        if selected_user_id and (user.profile.is_csr or user.profile.is_manager):
+            queryset = queryset.filter(user__id=selected_user_id)
+
+        return queryset
     
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
 
         context["users"] = CustomUser.objects.all()
         context["can_see_all_quotes"] = self.request.user.profile.is_csr or self.request.user.profile.is_manager
+        context["selected_user_id"] = self.request.GET.get("user") or ""
+        context["slug"] = self.kwargs.get("slug")
         
         return context
+    
+    def paginate_queryset(self, queryset, page_size):
+        paginator = self.get_paginator(queryset, page_size)
+        page = self.request.GET.get(self.page_kwarg, 1)
+        page_obj = paginator.get_page(page)
+        
+        return paginator, page_obj, page_obj.object_list, page_obj.has_other_pages()
 
 class QuoteHeadCreateView(LoginRequiredMixin, CreateView):
     model = Quote
     form_class = QuoteHeadForm
     template_name = "quotes/quote_head.html"
-    #success_url = reverse_lazy("quotes:quote_list")
 
     def get_form_kwargs(self):
         kwargs = super().get_form_kwargs()
@@ -89,12 +109,17 @@ def quote_edit(request, pk):
     quote = get_object_or_404(Quote, pk=pk)
     discount_choices = QuoteLine.Discount.choices
     quote_line_form = QuoteLineForm()
+    user = request.user
+
+    if not (user.profile.is_csr or user.profile.is_manager):
+        if quote.user != user:
+            messages.error(
+                request,
+                f"No tienes permisos para editar la cotización {pk}."
+            )
+            return redirect("quotes:quote_list")
 
     if request.method == "POST":
-        print("cargando en POST")
-
-        print("---", request.POST)
-
         posted_lines = [key.split("_")[2] for key in request.POST.keys() if key.startswith("product_line_")]
 
         #obtener las líneas existentes en la cotización
