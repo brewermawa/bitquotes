@@ -166,7 +166,6 @@ def quote_edit(request, pk):
 
 @login_required
 def quote_detail(request, pk):
-
     quote = get_object_or_404(Quote, pk=pk)
 
     return render(request, "quotes/quote_detail.html", {

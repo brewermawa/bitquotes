@@ -6,7 +6,6 @@
 {% block content_header %}
 <div class="row mt-3 mb-2 align-items-start">
 
-    <!-- IZQUIERDA: info de la cotización -->
     <div class="col-md-4 col-lg-4">
         <h1 class="h4 mb-2 d-flex align-items-center gap-2">
             <i class="bi bi-receipt"></i>
@@ -15,47 +14,60 @@
 
         <div class="mb-2">
             <span class="badge bg-light text-dark border px-3 py-2 fs-6">
-                COT-002134
+                {{ quote.quote_id }}
             </span>
         </div>
 
         <small class="text-muted d-block">
-            Cliente: <strong>Industria Metalúrgica S.A.</strong>
-             — Contacto: <strong>Carlos Pérez</strong>
+            Cliente: <strong>{{ quote.customer }}</strong>
+             — Contacto: <strong>{{ quote.contact }}</strong>
+        </small>
+
+        <!-- NUEVO: datos de contacto (dummy por ahora) -->
+        <small class="text-muted d-block">
+            <i class="bi bi-telephone me-1"></i>
+            Tel: <strong>{{ quote.contact.formatted_phone }}</strong>
+            &nbsp; · &nbsp;
+            Cel: <strong>{{ quote.contact.formatted_cel_phone }}</strong>
         </small>
         <small class="text-muted d-block">
-            Vendedor: <strong>Juan Hernández</strong>
+            <i class="bi bi-envelope me-1"></i>
+            Email: <strong>{{ quote.contact.email }}</strong>
+        </small>
+        <!-- FIN NUEVO -->
+
+        <small class="text-muted d-block">
+            Vendedor: <strong>{{ quote.user }}</strong>
         </small>
         <small class="text-muted d-block">
-            Términos de pago: <strong>Crédito 15 días</strong>
+            Términos de pago: <strong>{{ quote.get_payment_terms_display }}</strong>
         </small>
         <small class="text-muted d-block">
             Estatus:
-            <span class="badge text-bg-secondary">Borrador</span>
+            <span class="badge text-bg-secondary">{{ quote.get_status_display }}</span>
         </small>
         <small class="text-muted d-block">
             Creada:
-            <strong>27 Noviembre 2025 — 15:32</strong>
-             — Vigencia: <strong>30 días</strong>
+            <strong>{{ quote.created|date:"j F Y" }}</strong>
+        </small>
+        <small class="text-muted d-block">
+            Vigencia:
+            <strong>{{ quote.valid_until }}</strong>
         </small>
     </div>
 
-    <!-- DERECHA: toolbar tipo CRM, con historial -->
     <div class="col-md-8 col-lg-8 d-flex justify-content-end">
         <div class="card border-0 bg-light w-100">
             <div class="card-body py-2 px-3">
-                <!-- Barra principal: estatus + botones -->
                 <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
-
-                    <!-- Lado izquierdo: estatus / última actualización -->
                     <div class="small text-muted">
                         <div class="d-flex align-items-center flex-wrap gap-2">
                             <span class="badge rounded-pill text-bg-secondary">
-                                Borrador
+                                {{ quote.get_status_display }}
                             </span>
                             <span>
                                 Última actualización:
-                                <strong>27 Nov 2025 — 16:10</strong>
+                                <strong>{{ quote.updated|date:"j F Y" }}</strong>
                             </span>
                         </div>
                     </div>
@@ -65,29 +77,39 @@
 
                         <!-- Editar / PDF -->
                         <div class="btn-group btn-group-sm" role="group">
-                            <a href="#" class="btn btn-outline-secondary">
-                                <i class="bi bi-pencil me-1"></i> Editar
-                            </a>
-                            <a href="#" class="btn btn-outline-primary">
-                                <i class="bi bi-filetype-pdf me-1"></i> PDF
-                            </a>
+                            {% if quote.can_edit %}
+                                <a href="#" class="btn btn-outline-secondary">
+                                    <i class="bi bi-pencil me-1"></i> Editar
+                                </a>
+                            {% endif %}
+                            
+                            {% if quote.can_generate_pdf %}
+                                <a href="#" class="btn btn-outline-primary">
+                                    <i class="bi bi-filetype-pdf me-1"></i> PDF
+                                </a>
+                            {% endif %}
                         </div>
 
                         <!-- Enviar -->
-                        <div class="btn-group btn-group-sm" role="group">
-                            <button type="button" class="btn btn-outline-primary">
-                                <i class="bi bi-envelope-arrow-up me-1"></i> Enviar
-                            </button>
-                        </div>
+                        {% if quote.can_generate_pdf %}
+                            <div class="btn-group btn-group-sm" role="group">
+                                <button type="button" class="btn btn-outline-primary">
+                                    <i class="bi bi-envelope-arrow-up me-1"></i> Enviar
+                                </button>
+                            </div>
+                        {% endif %}
 
-                        <!-- Estatus -->
                         <div class="btn-group btn-group-sm" role="group">
-                            <button type="button" class="btn btn-outline-success">
-                                <i class="bi bi-trophy me-1"></i> Ganada
-                            </button>
-                            <button type="button" class="btn btn-outline-danger">
-                                <i class="bi bi-x-octagon me-1"></i> Perdida
-                            </button>
+                            {% if quote.can_mark_won %}
+                                <button type="button" class="btn btn-outline-success">
+                                    <i class="bi bi-trophy me-1"></i> Ganada
+                                </button>
+                            {% endif %}
+                            {% if quote.can_mark_lost %}
+                                <button type="button" class="btn btn-outline-danger">
+                                    <i class="bi bi-x-octagon me-1"></i> Perdida
+                                </button>
+                            {% endif %}
                         </div>
 
                     </div>

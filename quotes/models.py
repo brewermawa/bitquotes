@@ -128,6 +128,44 @@ class Quote(models.Model):
             super().save(update_fields=["valid_until", "quote_id"])
 
         return self
+
+    @property
+    def can_edit(self):
+        return self.status in {
+            self.Status.DRAFT,
+            self.Status.APPROVED,
+            self.Status.SENT,
+            self.Status.EXPIRED,
+        }
+
+    @property
+    def can_generate_pdf(self):
+        # En la práctica puedes permitir siempre
+        return True
+
+    @property
+    def can_send(self):
+        return self.status in {
+            self.Status.DRAFT,
+            self.Status.APPROVED,
+            self.Status.SENT,
+        }
+
+    @property
+    def can_mark_won(self):
+        return self.status in {
+            self.Status.APPROVED,
+            self.Status.SENT,
+            self.Status.EXPIRED,
+        }
+
+    @property
+    def can_mark_lost(self):
+        return self.status in {
+            self.Status.APPROVED,
+            self.Status.SENT,
+            self.Status.EXPIRED,
+        }
     
     def add_product(self, product, quantity, discount, delivery_time):
         QuoteLine.objects.create(
