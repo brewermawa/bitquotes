@@ -214,9 +214,13 @@ class Quote(models.Model):
         return self.get_subtotal() - self.get_discount()
     
     @property
+    def get_tax(self) -> Decimal:
+        return (self.net_subtotal * Decimal(0.16)).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+    
+    @property
     def total(self) -> Decimal:
         
-        return (self.get_subtotal() - self.get_discount()) * Decimal(1.16)
+        return self.get_subtotal() - self.get_discount() + self.get_tax
             
 
 class QuoteSection(models.Model):
@@ -237,6 +241,7 @@ class QuoteSection(models.Model):
     
     def get_subtotal(self) -> Decimal:
         lines = self.section_lines.all()
+
         return sum((line.gross_total for line in lines), Decimal("0.00"))
 
     def get_discount(self) -> Decimal:
