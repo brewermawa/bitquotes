@@ -85,5 +85,11 @@ class QuoteCommentForm(forms.ModelForm):
     class Meta:
         model = QuoteComment
         fields = ["comment"]
-        widgets = {"comment": forms.Textarea}
+        widgets = {
+            "comment": forms.Textarea(attrs={
+                "class": "form-control form-control-sm",
+                "rows": "3",
+                "placeholder": "Comentario",
+            })
+        }
     

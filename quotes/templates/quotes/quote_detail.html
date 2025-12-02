@@ -234,63 +234,8 @@
             {% endfor %}
 
             <!-- COMENTARIOS -->
-            <div class="card mb-4">
-                <div class="card-header d-flex justify-content-between align-items-center">
-                    <div class="d-flex align-items-center gap-2">
-                        <i class="bi bi-chat-text"></i>
-                        <strong>Comentarios</strong>
-                    </div>
-                    <span class="badge text-bg-light text-muted small">2 comentarios</span>
-                </div>
 
-                <div class="card-body">
-                    <div class="mb-3">
-                        <div class="d-flex justify-content-between">
-                            <strong class="small">Juan Hernández</strong>
-                            <small class="text-muted">27 Nov 2025 — 16:10</small>
-                        </div>
-                        <p class="small mb-1">
-                            Cliente pidió incluir instalación básica en sitio.
-                        </p>
-                    </div>
-
-                    <hr class="my-2">
-
-                    <div class="mb-3">
-                        <div class="d-flex justify-content-between">
-                            <strong class="small">Soporte BIT</strong>
-                            <small class="text-muted">27 Nov 2025 — 17:45</small>
-                        </div>
-                        <p class="small mb-1">
-                            Se validó disponibilidad de equipo en HP.
-                        </p>
-                    </div>
-
-                    <hr class="my-3">
-
-                    <form>
-                        <div class="mb-2">
-                            <label class="form-label small fw-semibold">Agregar comentario</label>
-                            <textarea class="form-control form-control-sm"
-                                    rows="3"
-                                    placeholder="Escribe una nota interna…"></textarea>
-                        </div>
-
-                        <div class="d-flex justify-content-between align-items-center">
-                            <div class="form-check small">
-                                <input class="form-check-input" type="checkbox" id="importantCheck">
-                                <label class="form-check-label" for="importantCheck">
-                                    Marcar como importante
-                                </label>
-                            </div>
-
-                            <button type="submit" class="btn btn-sm btn-primary">
-                                <i class="bi bi-send me-1"></i> Guardar
-                            </button>
-                        </div>
-                    </form>
-                </div>
-            </div>
+            {% include "quotes/_quote_comments_block.html" %}
 
         </div>
 
@@ -340,7 +285,7 @@
                     <div class="card-body small">
                         <ul class="mb-2 ps-3">
                             <li>Precios sujetos a cambio sin previo aviso.</li>
-                            <li>Entrega estimada: 3–5 días hábiles.</li>
+                            <li>Entrega estimada: 3-5 días hábiles.</li>
                             <li>Garantía según políticas del fabricante.</li>
                             <li>Instalación básica incluida (si aplica).</li>
                         </ul>

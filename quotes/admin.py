@@ -25,13 +25,7 @@ class QuoteCommentInline(admin.TabularInline):
     #def has_add_permission(self, request, obj=None): return False
     #def has_change_permission(self, request, obj=None): return False
 
-    def save_formset(self, request, form, formset, change):
-        instances = formset.save(commit=False)
-
-        for instance in instances:
-            instance.user = request.user
-
-            instance.save()
+    
 
 
 @admin.register(Quote)
@@ -75,6 +69,16 @@ class QuoteAdmin(admin.ModelAdmin):
     #def has_change_permission(self, request, obj=None): return False
     #def has_delete_permission(self, request, obj=None): return False
 
+    def save_formset(self, request, form, formset, change):
+        instances = formset.save(commit=False)
+
+        for obj in instances:
+            # Solo tocar los QuoteComment
+            if isinstance(obj, QuoteComment) and not obj.user_id:
+                obj.user = request.user
+            obj.save()
+
+        formset.save_m2m()
     
 
 

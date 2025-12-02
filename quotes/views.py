@@ -167,12 +167,55 @@ def quote_edit(request, pk):
 @login_required
 def quote_detail(request, pk):
     quote = get_object_or_404(Quote, pk=pk)
+    comments = QuoteComment.objects.filter(quote=quote)
     comment_form = QuoteCommentForm(instance=quote)
 
     return render(request, "quotes/quote_detail.html", {
         "quote": quote,
+        "comments": comments,
         "comment_form": comment_form,
     })
+
+@login_required
+def quote_add_comment(request, pk):
+    quote = get_object_or_404(Quote, pk=pk)
+
+    if request.method == "POST":
+        form = QuoteCommentForm(request.POST)
+        if form.is_valid():
+            comment = form.save(commit=False)
+            comment.quote = quote
+            comment.user = request.user
+            comment.save()
+
+            # Recargamos comentarios y limpiamos el form
+            comments = quote.comments.select_related("user").order_by("-created")
+            form = QuoteCommentForm()
+
+            return render(
+                request,
+                "quotes/_quote_comments_block.html",
+                {
+                    "quote": quote,
+                    "comment_form": form,
+                    "comments": comments,
+                },
+            )
+
+    # Si algo falla en el form, regresamos el bloque igual pero con errores
+    comments = quote.comments.select_related("user").order_by("-created")
+    form = QuoteCommentForm(request.POST or None)
+
+    return render(
+        request,
+        "quotes/partials/_quote_comments_block.html",
+        {
+            "quote": quote,
+            "comment_form": form,
+            "comments": comments,
+        },
+        status=400,
+    )
     
 
 def load_users_htmx(request):
