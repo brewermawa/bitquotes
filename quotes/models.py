@@ -190,6 +190,7 @@ class Quote(models.Model):
 
         return section
     
+    @property
     def get_subtotal(self) -> Decimal:
         """
         Subtotal bruto de la cotización (antes de descuentos).
@@ -198,6 +199,7 @@ class Quote(models.Model):
         lines = self.quote_lines.all()
         return sum((line.gross_total for line in lines), Decimal("0.00"))
 
+    @property
     def get_discount(self) -> Decimal:
         """
         Total de descuento en pesos de la cotización.
@@ -211,7 +213,7 @@ class Quote(models.Model):
         """
         Subtotal neto después de descuentos (base gravable antes de IVA).
         """
-        return self.get_subtotal() - self.get_discount()
+        return self.get_subtotal - self.get_discount
     
     @property
     def get_tax(self) -> Decimal:
@@ -220,7 +222,7 @@ class Quote(models.Model):
     @property
     def total(self) -> Decimal:
         
-        return self.get_subtotal() - self.get_discount() + self.get_tax
+        return self.get_subtotal - self.get_discount + self.get_tax
             
 
 class QuoteSection(models.Model):
@@ -242,7 +244,7 @@ class QuoteSection(models.Model):
     def get_subtotal(self) -> Decimal:
         lines = self.section_lines.all()
 
-        return sum((line.gross_total for line in lines), Decimal("0.00"))
+        return sum((line.net_total for line in lines), Decimal("0.00"))
 
     def get_discount(self) -> Decimal:
         lines = self.section_lines.all()

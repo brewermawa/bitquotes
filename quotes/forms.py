@@ -1,6 +1,6 @@
 from django import forms
 
-from .models import Quote, QuoteLine
+from .models import Quote, QuoteLine, QuoteComment
 from customers.models import Contact
 from users.models import CustomUser
 
@@ -78,5 +78,12 @@ class QuoteLineForm(forms.ModelForm):
             "unit_price",
             "discount",
             "delivery_time"
-        ]    
+        ]
+
+
+class QuoteCommentForm(forms.ModelForm):
+    class Meta:
+        model = QuoteComment
+        fields = ["comment"]
+        widgets = {"comment": forms.Textarea}
     

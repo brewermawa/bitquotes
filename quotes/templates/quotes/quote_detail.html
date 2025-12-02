@@ -308,6 +308,10 @@
                                 <span class="text-muted">Descuento</span>
                                 <span class="font-monospace text-danger">- ${{ quote.get_discount|intcomma }}</span>
                             </div>
+                            <div class="d-flex justify-content-between mb-2">
+                                <span class="text-muted">Subtotal</span>
+                                <span class="font-monospace">${{ quote.net_subtotal|intcomma }}</span>
+                            </div>
                         {% endif %}
 
                         <div class="d-flex justify-content-between mb-2">

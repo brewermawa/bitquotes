@@ -7,8 +7,8 @@ from django.http import HttpResponseBadRequest, HttpResponse
 from django.db.models import Q
 from django.contrib import messages
 
-from .models import Quote, QuoteLine, QuoteSection
-from .forms import QuoteHeadForm, QuotePaymentTermsForm, QuoteLineForm
+from .models import Quote, QuoteLine, QuoteSection, QuoteComment
+from .forms import QuoteHeadForm, QuotePaymentTermsForm, QuoteLineForm, QuoteCommentForm
 from users.models import CustomUser
 from customers.models import Contact
 from catalog.models import Product
@@ -167,9 +167,11 @@ def quote_edit(request, pk):
 @login_required
 def quote_detail(request, pk):
     quote = get_object_or_404(Quote, pk=pk)
+    comment_form = QuoteCommentForm(instance=quote)
 
     return render(request, "quotes/quote_detail.html", {
-        "quote": quote
+        "quote": quote,
+        "comment_form": comment_form,
     })
     
 

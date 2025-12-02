@@ -17,13 +17,21 @@ class QuoteLineInline(admin.StackedInline):
 
 class QuoteCommentInline(admin.TabularInline):
     model = QuoteComment
-    readonly_fields = ["user", "comment", "created"]
+    readonly_fields = ["user", "created"]
     extra = 0
     can_delete = False
     show_change_link = False
     
-    def has_add_permission(self, request, obj=None): return False
-    def has_change_permission(self, request, obj=None): return False
+    #def has_add_permission(self, request, obj=None): return False
+    #def has_change_permission(self, request, obj=None): return False
+
+    def save_formset(self, request, form, formset, change):
+        instances = formset.save(commit=False)
+
+        for instance in instances:
+            instance.user = request.user
+
+            instance.save()
 
 
 @admin.register(Quote)
@@ -50,7 +58,7 @@ class QuoteAdmin(admin.ModelAdmin):
             )
         }),
         ('Información cliente', {"fields": ("customer", "contact")}),
-        ('Totales', {"fields": ("sub_total", "discount_total", "tax", "total")}),
+        #('Totales', {"fields": ("sub_total", "discount_total", "tax", "total")}),
         ("Workflow", {
             "classes": ("collapse",),
             "fields": ("approved_by", "approved_at", "sent_by", "sent_at", "won_by", "won_at", "lost_by", "lost_at", "lost_reason"),
@@ -63,9 +71,9 @@ class QuoteAdmin(admin.ModelAdmin):
 
     inlines = [QuoteLineInline, QuoteCommentInline]
 
-    def has_add_permission(self, request): return False
-    def has_change_permission(self, request, obj=None): return False
-    def has_delete_permission(self, request, obj=None): return False
+    #def has_add_permission(self, request): return False
+    #def has_change_permission(self, request, obj=None): return False
+    #def has_delete_permission(self, request, obj=None): return False
 
     
 
