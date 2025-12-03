@@ -167,7 +167,14 @@ class Quote(models.Model):
             self.Status.EXPIRED,
         }
     
+    @property
+    def pending_approval(self):
+        return self.status == self.Status.PENDING_APPROVAL
+    
     def add_product(self, product, quantity, discount, delivery_time):
+        if discount >= 10:
+            self.status = self.Status.PENDING_APPROVAL
+
         QuoteLine.objects.create(
                 quote=self,
                 section=self.assign_section(product),

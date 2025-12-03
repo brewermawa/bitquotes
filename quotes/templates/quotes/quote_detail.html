@@ -79,6 +79,14 @@
 
                             <!-- Editar / PDF -->
                             <div class="btn-group btn-group-sm" role="group">
+                                {% if quote.pending_approval and request.user.profile.is_manager %}
+                                    <div class="btn-group btn-group-sm" role="group">
+                                        <a href="#" class="btn btn-success">
+                                            <i class="bi bi-check2-circle me-1"></i> Aprobar
+                                        </a>
+                                    </div>
+                                {% endif %}
+
                                 {% if quote.can_edit %}
                                     <a href="{% url 'quotes:quote_edit' quote.pk %}" class="btn btn-outline-secondary">
                                         <i class="bi bi-pencil me-1"></i> Editar
@@ -93,7 +101,7 @@
                             </div>
 
                             <!-- Enviar -->
-                            {% if quote.can_generate_pdf %}
+                            {% if quote.can_send %}
                                 <div class="btn-group btn-group-sm" role="group">
                                     <a href="#" type="button" class="btn btn-outline-primary">
                                         <i class="bi bi-envelope-arrow-up me-1"></i> Enviar
@@ -119,60 +127,118 @@
 
                     <!-- Historial -->
                     <div class="mt-3 pt-2 border-top">
-                        <div class="small text-muted mb-1">
-                            Historial de estatus
+                        <div class="d-flex justify-content-between align-items-center mb-2">
+                            <div class="small text-muted d-flex align-items-center gap-2">
+                                <i class="bi bi-clock-history"></i>
+                                <span>Historial de la cotización</span>
+                            </div>
                         </div>
-                        <ul class="list-unstyled mb-0 small">
 
-                            <li class="d-flex justify-content-between align-items-center mb-1">
-                                <div class="d-flex align-items-center gap-2">
-                                    <i class="bi bi-circle-fill text-secondary" style="font-size: 0.55rem;"></i>
-                                    <span>Creada</span>
+                        <div class="timeline small">
+
+                            <!-- Creada -->
+                            <div class="timeline-item d-flex">
+                                <div class="me-3">
+                                    <span class="badge rounded-pill text-bg-secondary">Creada</span>
                                 </div>
-                                <span class="text-muted">{{ quote.created|date:"j F Y" }}</span>
-                            </li>
-                            
+                                <div class="flex-grow-1 border-start ps-3">
+                                    <div class="d-flex justify-content-between">
+                                        <span class="fw-semibold">Creación de la cotización</span>
+                                        <span class="text-muted">
+                                            {{ quote.created|date:"j F Y" }}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Aprobada -->
                             {% if quote.approved_at %}
-                                <li class="d-flex justify-content-between align-items-center mb-1">
-                                    <div class="d-flex align-items-center gap-2">
-                                        <i class="bi bi-circle-fill text-success" style="font-size: 0.55rem;"></i>
-                                        <span>Aprobada</span>
+                            <div class="timeline-item d-flex mt-2">
+                                <div class="me-3">
+                                    <span class="badge rounded-pill text-bg-success">Aprobada</span>
+                                </div>
+                                <div class="flex-grow-1 border-start ps-3">
+                                    <div class="d-flex justify-content-between">
+                                        <span class="fw-semibold">Aprobación interna</span>
+                                        <span class="text-muted">
+                                            {{ quote.approved_at|date:"j F Y" }}
+                                        </span>
                                     </div>
-                                    <span class="text-muted">{{ quote.approved_at|date:"j F Y" }}</span>
-                                </li>
+                                </div>
+                            </div>
                             {% endif %}
-                            
+
+                            <!-- Enviada -->
                             {% if quote.sent_at %}
-                                <li class="d-flex justify-content-between align-items-center mb-1">
-                                    <div class="d-flex align-items-center gap-2">
-                                        <i class="bi bi-circle-fill text-primary" style="font-size: 0.55rem;"></i>
-                                        <span>Enviada</span>
+                            <div class="timeline-item d-flex mt-2">
+                                <div class="me-3">
+                                    <span class="badge rounded-pill text-bg-primary">Enviada</span>
+                                </div>
+                                <div class="flex-grow-1 border-start ps-3">
+                                    <div class="d-flex justify-content-between">
+                                        <span class="fw-semibold">Envío al cliente</span>
+                                        <span class="text-muted">
+                                            {{ quote.sent_at|date:"j F Y" }}
+                                        </span>
                                     </div>
-                                    <span class="text-muted">{{ quote.sent_at|date:"j F Y" }}</span>
-                                </li>
+                                </div>
+                            </div>
                             {% endif %}
 
+                            <!-- Ganada -->
                             {% if quote.won_at %}
-                                <li class="d-flex justify-content-between align-items-center">
-                                    <div class="d-flex align-items-center gap-2">
-                                        <i class="bi bi-circle-fill text-success" style="font-size: 0.55rem;"></i>
-                                        <span>Ganada</span>
+                            <div class="timeline-item d-flex mt-2">
+                                <div class="me-3">
+                                    <span class="badge rounded-pill text-bg-success">Ganada</span>
+                                </div>
+                                <div class="flex-grow-1 border-start ps-3">
+                                    <div class="d-flex justify-content-between">
+                                        <span class="fw-semibold">Orden de compra recibida</span>
+                                        <span class="text-muted">
+                                            {{ quote.won_at|date:"j F Y" }}
+                                        </span>
                                     </div>
-                                    <span class="text-muted">{{ quote.won_at|date:"j F Y" }}</span>
-                                </li>
+                                </div>
+                            </div>
                             {% endif %}
 
+                            <!-- Perdida -->
                             {% if quote.lost_at %}
-                                <li class="d-flex justify-content-between align-items-center">
-                                    <div class="d-flex align-items-center gap-2">
-                                        <i class="bi bi-circle-fill text-danger" style="font-size: 0.55rem;"></i>
-                                        <span>Perdida</span>
+                            <div class="timeline-item d-flex mt-2">
+                                <div class="me-3">
+                                    <span class="badge rounded-pill text-bg-danger">Perdida</span>
+                                </div>
+                                <div class="flex-grow-1 border-start ps-3">
+                                    <div class="d-flex justify-content-between">
+                                        <span class="fw-semibold">Cotización perdida</span>
+                                        <span class="text-muted">
+                                            {{ quote.lost_at|date:"j F Y" }}
+                                        </span>
                                     </div>
-                                    <span class="text-muted">{{ quote.lost_at|date:"j F Y" }}</span>
-                                </li>
+                                </div>
+                            </div>
                             {% endif %}
-                        </ul>
-                    </div>
+
+                            <!-- Expirada (opcional) -->
+                            {% if quote.expired_at %}
+                            <div class="timeline-item d-flex mt-2">
+                                <div class="me-3">
+                                    <span class="badge rounded-pill text-bg-warning text-dark">Expirada</span>
+                                </div>
+                                <div class="flex-grow-1 border-start ps-3">
+                                    <div class="d-flex justify-content-between">
+                                        <span class="fw-semibold">Vigencia expirada</span>
+                                        <span class="text-muted">
+                                            {{ quote.expired_at|date:"j F Y" }}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endif %}
+
+                        </div>
+</div>
+
 
                 </div>
             </div>
@@ -284,14 +350,10 @@
                     </div>
                     <div class="card-body small">
                         <ul class="mb-2 ps-3">
+                            <li>Precios en pesos mexicanos, antes de IVA (+16%).</li>
                             <li>Precios sujetos a cambio sin previo aviso.</li>
-                            <li>Entrega estimada: 3-5 días hábiles.</li>
-                            <li>Garantía según políticas del fabricante.</li>
-                            <li>Instalación básica incluida (si aplica).</li>
+                            <li>Válida al {{ quote.valid_until }}.</li>
                         </ul>
-                        <span class="badge rounded-pill text-bg-light border small">
-                            Vigencia: 30 días
-                        </span>
                     </div>
                 </div>
 

@@ -61,6 +61,7 @@ class Profile(models.Model):
 
     @property
     def is_manager(self):
+        print(self.role == self.Role.MANAGER)
         return self.role == self.Role.MANAGER
 
     @property
