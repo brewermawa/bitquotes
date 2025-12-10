@@ -8,7 +8,9 @@
 
     <!-- RFC -->
     <td style="min-width:160px;">
-        <code data-hl="1">{{ customer.formatted_rfc|default:customer.rfc }}</code>
+        {% if customer.rfc %}
+            <code data-hl="1">{{ customer.formatted_rfc|default:customer.rfc }}</code>
+        {% endif %}
     </td>
 
     <!-- Asignado a -->

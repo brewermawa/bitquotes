@@ -22,7 +22,7 @@ class Customer(models.Model):
 
     name = models.CharField(max_length=100, unique=True, verbose_name="Cliente")
     slug = models.SlugField(max_length=100, unique=True)
-    rfc = models.CharField(max_length=13, validators=[rfc_validator], unique=True)
+    rfc = models.CharField(max_length=13, validators=[rfc_validator], unique=True, null=True, blank=True)
     assigned_to = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, verbose_name="Vendedor", related_name="assigned_customers")
     created = models.DateTimeField(auto_now_add=True)
     updated = models.DateTimeField(auto_now=True)
