@@ -20,11 +20,10 @@
             </div>
 
             <small class="text-muted d-block">
-                Cliente: <strong>{{ quote.customer }}</strong>
-                — Contacto: <strong>{{ quote.contact }}</strong>
+                Cliente: <strong>{{ quote.customer.name }}</strong>
+                — Contacto: <strong>{{ quote.contact.full_name }}</strong>
             </small>
 
-            <!-- NUEVO: datos de contacto (dummy por ahora) -->
             <small class="text-muted d-block">
                 <i class="bi bi-telephone me-1"></i>
                 Tel: <strong>{{ quote.contact.formatted_phone }}</strong>
@@ -35,10 +34,10 @@
                 <i class="bi bi-envelope me-1"></i>
                 Email: <strong>{{ quote.contact.email }}</strong>
             </small>
-            <!-- FIN NUEVO -->
 
             <small class="text-muted d-block">
-                Vendedor: <strong>{{ quote.user }}</strong>
+                Vendedor:
+                <strong>{{ quote.user.get_full_name|default:quote.user.username }}</strong>
             </small>
             <small class="text-muted d-block">
                 Términos de pago: <strong>{{ quote.get_payment_terms_display }}</strong>
@@ -53,14 +52,14 @@
             </small>
             <small class="text-muted d-block">
                 Vigencia:
-                <strong>{{ quote.valid_until }}</strong>
+                <strong>{{ quote.valid_until|date:"j F Y" }}</strong>
             </small>
         </div>
 
         <div class="col-md-8 col-lg-8 d-flex justify-content-end">
             <div class="card border-0 bg-light w-100">
                 <div class="card-body py-2 px-3">
-                    <!-- Botones -->
+                    <!-- Encabezado / resumen -->
                     <div class="d-flex align-items-center justify-content-between flex-wrap gap-2">
                         <div class="small text-muted">
                             <div class="d-flex align-items-center flex-wrap gap-2">
@@ -77,14 +76,12 @@
                         <!-- Lado derecho: acciones principales -->
                         <div class="btn-toolbar d-flex flex-wrap gap-2 justify-content-end">
 
-                            <!-- Editar / PDF -->
+                            <!-- Editar / PDF / Aprobación -->
                             <div class="btn-group btn-group-sm" role="group">
                                 {% if quote.pending_approval and request.user.profile.is_manager %}
-                                    <div class="btn-group btn-group-sm" role="group">
-                                        <a href="#" class="btn btn-success">
-                                            <i class="bi bi-check2-circle me-1"></i> Aprobar
-                                        </a>
-                                    </div>
+                                    <a href="#" class="btn btn-success">
+                                        <i class="bi bi-check2-circle me-1"></i> Aprobar
+                                    </a>
                                 {% endif %}
 
                                 {% if quote.can_edit %}
@@ -109,6 +106,7 @@
                                 </div>
                             {% endif %}
 
+                            <!-- Ganada / Perdida -->
                             <div class="btn-group btn-group-sm" role="group">
                                 {% if quote.can_mark_won %}
                                     <a href="#" type="button" class="btn btn-outline-success">
@@ -219,7 +217,7 @@
                             </div>
                             {% endif %}
 
-                            <!-- Expirada (opcional) -->
+                            <!-- Expirada -->
                             {% if quote.expired_at %}
                             <div class="timeline-item d-flex mt-2">
                                 <div class="me-3">
@@ -237,8 +235,7 @@
                             {% endif %}
 
                         </div>
-</div>
-
+                    </div>
 
                 </div>
             </div>
@@ -285,11 +282,11 @@
                                         <td class="text-end">{{ line.quantity }}</td>
                                         <td class="text-end">${{ line.unit_price|intcomma }}</td>
                                         {% if line.discount == 0 %}
-                                            <td class="text-end"> - </td>
+                                            <td class="text-end">-</td>
                                         {% else %}
-                                            <td class="text-end">{{ line.discount  }}%</td>
+                                            <td class="text-end">{{ line.discount }}%</td>
                                         {% endif %}
-                                        <td class="text-end">{{ line.delivery_time  }}</td>
+                                        <td class="text-end">{{ line.delivery_time|default_if_none:"-" }}</td>
                                         <td class="text-end fw-semibold">${{ line.net_total|intcomma }}</td>
                                     </tr>
                                 {% endfor %}
@@ -300,7 +297,6 @@
             {% endfor %}
 
             <!-- COMENTARIOS -->
-
             {% include "quotes/_quote_comments_block.html" %}
 
         </div>
@@ -352,7 +348,7 @@
                         <ul class="mb-2 ps-3">
                             <li>Precios en pesos mexicanos, antes de IVA (+16%).</li>
                             <li>Precios sujetos a cambio sin previo aviso.</li>
-                            <li>Válida al {{ quote.valid_until }}.</li>
+                            <li>Vigencia al {{ quote.valid_until|date:"j F Y" }}.</li>
                         </ul>
                     </div>
                 </div>

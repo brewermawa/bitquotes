@@ -247,21 +247,32 @@
         <!-- Buscar / seleccionar producto -->
         <div class="mb-3">
             <label class="form-label fw-semibold">Buscar producto</label>
-            <input type="search"
-                   class="form-control form-control-sm"
-                   placeholder="Escribe nombre o número de parte…"
-                   autocomplete="off"
-                   id="product-search"
-                   name="product_search"
-                   hx-get="{% url 'quotes:product_search_htmx' %}"
-                   hx-trigger="keyup changed delay:300ms"
-                   hx-target="#product-search-results"
-                   hx-indicator="#product-search-loading">
-                
-            <div id="product-search-loading" class="text-muted mt-1">
+
+            <div class="position-relative" style="max-width: 380px;">
+                <input type="search"
+                       class="form-control form-control-sm pe-5"
+                       placeholder="Escribe nombre o número de parte…"
+                       autocomplete="off"
+                       id="product-search"
+                       name="product_search"
+                       hx-get="{% url 'quotes:product_search_htmx' %}"
+                       hx-trigger="keyup changed delay:300ms"
+                       hx-target="#product-search-results"
+                       hx-indicator="#product-search-loading">
+
+                <!-- Botón explícito para limpiar el buscador -->
+                <button type="button"
+                        id="clear-product-search"
+                        class="btn btn-sm btn-outline-secondary position-absolute top-50 end-0 translate-middle-y me-1 px-2 py-0"
+                        style="display: none;">
+                    Borrar
+                </button>
+            </div>
+            <div id="product-search-loading" class="text-muted mt-1 htmx-indicator" style="display:none;">
                 <i class="bi bi-arrow-repeat"></i> Buscando…
             </div>
         </div>
+
 
         <!-- Resultados de búsqueda de producto -->
         <div id="product-search-results" class="list-group mb-3">
@@ -558,7 +569,6 @@
         cell.textContent = mxnFormatter.format(value);
       });
 
-
       renumberLines();
       recalcTotals();
     }
@@ -665,6 +675,28 @@
         return;
       }
     });
+
+    // ============================================================
+    // Botón "X" para limpiar el buscador de productos
+    // ============================================================
+    const productSearchInput = document.getElementById("product-search");
+    const clearSearchBtn = document.getElementById("clear-product-search");
+    const productSearchResults = document.getElementById("product-search-results");
+
+    if (productSearchInput && clearSearchBtn && productSearchResults) {
+      // Mostrar/ocultar la X según haya texto
+      productSearchInput.addEventListener("input", function () {
+        clearSearchBtn.style.display = productSearchInput.value ? "block" : "none";
+      });
+
+      // Al hacer clic en la X, limpiar texto y resultados
+      clearSearchBtn.addEventListener("click", function () {
+        productSearchInput.value = "";
+        clearSearchBtn.style.display = "none";
+        productSearchResults.innerHTML = "";
+        productSearchInput.focus();
+      });
+    }
   });
 </script>
 
