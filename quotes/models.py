@@ -176,9 +176,6 @@ class Quote(models.Model):
         return self.status == self.Status.PENDING_APPROVAL
     
     def add_product(self, product, quantity, discount, delivery_time):
-        if discount >= 10:
-            self.status = self.Status.PENDING_APPROVAL
-
         QuoteLine.objects.create(
                 quote=self,
                 section=self.assign_section(product),
@@ -189,6 +186,21 @@ class Quote(models.Model):
                 discount=discount,
                 delivery_time=delivery_time
             )
+        
+    def close_internal(self):
+        current_status = self.status
+
+        for line in self.quote_lines.all():
+            if line.discount >= 10:
+                self.status = self.Status.PENDING_APPROVAL
+                break
+
+        if self.status == current_status:
+            self.status = self.Status.APPROVED
+            self.approved_at = timezone.now()
+
+        self.save()
+
     
     def assign_section(self, product):
         section_type = product.product_type

@@ -111,6 +111,8 @@ def quote_edit(request, pk):
     quote_line_form = QuoteLineForm()
     user = request.user
 
+    # Permisos: solo CSR / manager pueden editar cualquier cotización.
+    # Vendedor solo puede editar las suyas.
     if not (user.profile.is_csr or user.profile.is_manager):
         if quote.user != user:
             messages.error(
@@ -120,12 +122,18 @@ def quote_edit(request, pk):
             return redirect("quotes:quote_list")
 
     if request.method == "POST":
-        posted_lines = [key.split("_")[2] for key in request.POST.keys() if key.startswith("product_line_")]
+        # 1) Detectar líneas enviadas en el POST
+        posted_lines = [
+            key.split("_")[2]
+            for key in request.POST.keys()
+            if key.startswith("product_line_")
+        ]
 
-        #obtener las líneas existentes en la cotización
+        # 2) Borrar líneas y secciones existentes para reconstruirlas
         QuoteLine.objects.filter(quote=quote).delete()
         QuoteSection.objects.filter(quote=quote).delete()
 
+        # 3) Construir un diccionario de productos para evitar múltiples queries
         product_ids = []
         for line in posted_lines:
             product_id = request.POST.get(f"product_line_{line}")
@@ -134,26 +142,41 @@ def quote_edit(request, pk):
 
         products_dict = Product.objects.in_bulk(product_ids)
 
+        # 4) Recrear las líneas de cotización
         for line in posted_lines:
             product_id = int(request.POST.get(f"product_line_{line}"))
             quantity = int(request.POST.get(f"qty_line_{line}"))
             discount = int(request.POST.get(f"discount_line_{line}"))
             delivery_time = int(request.POST.get(f"delivery_line_{line}", 0) or 0)
+
             product = products_dict[product_id]
             quote.add_product(product, quantity, discount, delivery_time)
 
+        # 5) Guardar términos de pago / condiciones de la cotización
         payment_terms_form = QuotePaymentTermsForm(request.POST, instance=quote)
 
-#        if payment_terms_form.is_valid():
-#            payment_terms_form.save()
-#            print(f"Payment terms saved: {quote.payment_terms}")
-#        else:
-#            print("payment_terms_form errors:", payment_terms_form.errors)
-            
-    else:
-        payment_terms_form = QuotePaymentTermsForm(instance=quote)
+        if payment_terms_form.is_valid():
+            payment_terms_form.save()
 
-    quote_lines = QuoteLine.objects.filter(quote=quote)
+            messages.success(request, "La cotización se guardó correctamente.")
+            # 6) Redirigir a quote_detail después de guardar
+            return redirect("quotes:quote_detail", pk=quote.pk)
+        else:
+            # Si hay errores en el form, volvemos a mostrar quote_edit
+            quote_lines = QuoteLine.objects.filter(quote=quote)
+
+            return render(request, "quotes/quote_edit.html", {
+                "quote_line_form": quote_line_form,
+                "payment_terms_form": payment_terms_form,  # con errores
+                "quote": quote,
+                "quote_lines": quote_lines,
+                "discount_choices": discount_choices,
+            })
+
+    else:
+        # GET: cargar formulario con la info actual
+        payment_terms_form = QuotePaymentTermsForm(instance=quote)
+        quote_lines = QuoteLine.objects.filter(quote=quote)
 
     return render(request, "quotes/quote_edit.html", {
         "quote_line_form": quote_line_form,
@@ -162,6 +185,7 @@ def quote_edit(request, pk):
         "quote_lines": quote_lines,
         "discount_choices": discount_choices,
     })
+
 
 @login_required
 def quote_detail(request, pk):
@@ -187,6 +211,54 @@ def quote_detail(request, pk):
         "comments": comments,
         "comment_form": comment_form,
     })
+
+@login_required
+def quote_close_internal(request, pk):
+    quote = get_object_or_404(Quote, pk=pk)
+    user = request.user
+
+    # 1) Permisos: CSR / manager pueden finalizar cualquier cotización.
+    #    Vendedor solo puede finalizar sus propias cotizaciones.
+    if not (user.profile.is_csr or user.profile.is_manager):
+        if quote.user != user:
+            messages.error(
+                request,
+                f"No tienes permisos para finalizar la cotización {pk}."
+            )
+            return redirect("quotes:quote_detail", pk=quote.pk)
+
+    # 2) Solo se pueden finalizar cotizaciones en borrador
+    if quote.status != Quote.Status.DRAFT:
+        messages.warning(
+            request,
+            "Solo es posible finalizar cotizaciones en borrador."
+        )
+        return redirect("quotes:quote_detail", pk=quote.pk)
+
+    # 3) Ejecutar lógica de cierre interno (APPROVED o PENDING_APPROVAL)
+    quote.close_internal()
+
+    # 4) Mensaje según el resultado
+    if quote.status == Quote.Status.APPROVED:
+        messages.success(
+            request,
+            "La cotización se finalizó y fue aprobada automáticamente."
+        )
+    elif quote.status == Quote.Status.PENDING_APPROVAL:
+        messages.success(
+            request,
+            "La cotización se finalizó y ha sido enviada a aprobación interna."
+        )
+    else:
+        # Esto no debería suceder con la lógica actual, pero dejamos un fallback defensivo
+        messages.info(
+            request,
+            "La cotización se finalizó."
+        )
+
+    return redirect("quotes:quote_detail", pk=quote.pk)
+
+    
 
 @login_required
 def quote_approve(request, pk):

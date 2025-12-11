@@ -26,4 +26,5 @@ urlpatterns = [
 
     path("quotes/<int:pk>/comments/add/", views.quote_add_comment, name="quote_add_comment"),
     path("quotes/<int:pk>/approve/", views.quote_approve, name="quote_approve"),
+    path("quotes/<int:pk>/close_internal/", views.quote_close_internal, name="quote_close_internal"),
 ] 
