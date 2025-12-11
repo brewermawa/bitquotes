@@ -79,7 +79,7 @@
                             <!-- Editar / PDF / Aprobación -->
                             <div class="btn-group btn-group-sm" role="group">
                                 {% if quote.pending_approval and request.user.profile.is_manager %}
-                                    <a href="#" class="btn btn-success">
+                                    <a href="{% url 'quotes:quote_approve' quote.pk %}" class="btn btn-success">
                                         <i class="bi bi-check2-circle me-1"></i> Aprobar
                                     </a>
                                 {% endif %}

@@ -16,7 +16,6 @@ class QuoteHeadForm(forms.ModelForm):
         }
 
     def __init__(self,*args, **kwargs):
-        print("FORM init")
         self.request_user = kwargs.pop("user", None)
         super().__init__(*args, **kwargs)
 
@@ -46,7 +45,6 @@ class QuoteHeadForm(forms.ModelForm):
         Validación amistosa: el contacto debe pertenecer al cliente elegido.
         (Tu modelo ya lo valida en clean(), pero esto mejora el mensaje en el form.)
         """
-        print("FORM clean")
         cleaned = super().clean()
         customer = cleaned.get("customer")
         contact = cleaned.get("contact")

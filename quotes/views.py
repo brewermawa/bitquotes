@@ -144,14 +144,13 @@ def quote_edit(request, pk):
 
         payment_terms_form = QuotePaymentTermsForm(request.POST, instance=quote)
 
-        if payment_terms_form.is_valid():
-            payment_terms_form.save()
-            print(f"Payment terms saved: {quote.payment_terms}")
-        else:
-            print("payment_terms_form errors:", payment_terms_form.errors)
+#        if payment_terms_form.is_valid():
+#            payment_terms_form.save()
+#            print(f"Payment terms saved: {quote.payment_terms}")
+#        else:
+#            print("payment_terms_form errors:", payment_terms_form.errors)
             
     else:
-        print("cargando en GET")
         payment_terms_form = QuotePaymentTermsForm(instance=quote)
 
     quote_lines = QuoteLine.objects.filter(quote=quote)
@@ -166,15 +165,36 @@ def quote_edit(request, pk):
 
 @login_required
 def quote_detail(request, pk):
-    quote = get_object_or_404(Quote, pk=pk)
-    comments = QuoteComment.objects.filter(quote=quote)
-    comment_form = QuoteCommentForm(instance=quote)
+    quote_qs = (
+        Quote.objects
+        .select_related("customer", "contact", "user")
+        .prefetch_related(
+            "quote_sections__section_lines__product",
+            "quote_sections__section_lines",
+        )
+    )
+    quote = get_object_or_404(quote_qs, pk=pk)
+    comments = (
+        QuoteComment.objects
+        .filter(quote=quote)
+        .select_related("user")
+        .order_by("-created")
+    )
+    comment_form = QuoteCommentForm()
 
     return render(request, "quotes/quote_detail.html", {
         "quote": quote,
         "comments": comments,
         "comment_form": comment_form,
     })
+
+@login_required
+def quote_approve(request, pk):
+    quote = get_object_or_404(Quote, pk=pk)
+    quote.approve(request.user)
+    quote.save()
+
+    return redirect("quotes:quote_detail", pk=pk)
 
 @login_required
 def quote_add_comment(request, pk):

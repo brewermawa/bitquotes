@@ -4,6 +4,7 @@ from datetime import date
 from calendar import monthrange
 from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator
+from django.utils import timezone
 from decimal import Decimal, ROUND_HALF_UP
 
 from customers.models import Customer, Contact
@@ -104,9 +105,7 @@ class Quote(models.Model):
             self.valid_until = last_day_of_month
 
     def __set_quote_id(self):
-        #BIT-MG-251028-00016
         initials = f"{self.user.first_name[0]}{self.user.last_name[0]}".upper()
-        #date_part = timezone.localdate().strftime("%y%m%d")
         date_part = self.created.strftime("%y%m%d")
         pk_part = str(self.pk).zfill(5)
         self.quote_id = f"BIT-{initials}-{date_part}-{pk_part}"
@@ -128,12 +127,17 @@ class Quote(models.Model):
             super().save(update_fields=["valid_until", "quote_id"])
 
         return self
+    
+    def approve(self, user=None):
+        self.status = self.Status.APPROVED
+        self.approved_by = user
+        self.approved_at = timezone.now()
 
     @property
     def can_edit(self):
         return self.status in {
             self.Status.DRAFT,
-            self.Status.APPROVED,
+            self.Status.PENDING_APPROVAL,
             self.Status.SENT,
             self.Status.EXPIRED,
         }

@@ -25,4 +25,5 @@ urlpatterns = [
     path("product/<int:pk>/related/", views.related_products, name="related_products"),
 
     path("quotes/<int:pk>/comments/add/", views.quote_add_comment, name="quote_add_comment"),
+    path("quotes/<int:pk>/approve/", views.quote_approve, name="quote_approve"),
 ] 
