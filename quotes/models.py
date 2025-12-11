@@ -133,13 +133,14 @@ class Quote(models.Model):
         self.approved_by = user
         self.approved_at = timezone.now()
 
+        self.save(update_fields=["status", "approved_by", "approved_at"])
+
     @property
     def can_edit(self):
         return self.status in {
             self.Status.DRAFT,
+            self.Status.APPROVED,
             self.Status.PENDING_APPROVAL,
-            self.Status.SENT,
-            self.Status.EXPIRED,
         }
 
     @property
@@ -150,26 +151,17 @@ class Quote(models.Model):
     @property
     def can_send(self):
         return self.status in {
-            self.Status.DRAFT,
             self.Status.APPROVED,
             self.Status.SENT,
         }
 
     @property
     def can_mark_won(self):
-        return self.status in {
-            self.Status.APPROVED,
-            self.Status.SENT,
-            self.Status.EXPIRED,
-        }
+        return self.status == self.Status.SENT
 
     @property
     def can_mark_lost(self):
-        return self.status in {
-            self.Status.APPROVED,
-            self.Status.SENT,
-            self.Status.EXPIRED,
-        }
+        return self.status == self.Status.SENT
     
     @property
     def pending_approval(self):
@@ -201,7 +193,54 @@ class Quote(models.Model):
 
         self.save()
 
-    
+    def reevaluate_after_edit(self):
+        """
+        Si la cotización estaba aprobada o en revisión, cualquier edición invalida
+        esa aprobación y regresa el estatus a DRAFT. La aprobación debe realizarse de nuevo.
+        """
+        if self.status in [self.Status.APPROVED, self.Status.PENDING_APPROVAL]:
+            self.status = self.Status.DRAFT
+            self.approved_at = None
+            self.approved_by = None
+            self.save(update_fields=["status", "approved_at", "approved_by"])
+
+    def mark_sent(self, user=None):
+        """
+        Marca la cotización como enviada (workflow temporal mientras integramos email real).
+        """
+        if not self.can_send:
+            return False
+
+        self.status = self.Status.SENT
+        self.sent_at = timezone.now()
+        self.sent_by = user
+        self.save(update_fields=["status", "sent_at", "sent_by"])
+
+        return True
+
+
+    def mark_won(self, user=None):
+        if not self.can_mark_won:
+            return False
+        
+        self.status = self.Status.WON
+        self.won_at = timezone.now()
+        self.won_by = user
+        self.save(update_fields=["status", "won_at", "won_by"])
+
+        return True
+
+    def mark_lost(self, user=None):
+        if not self.can_mark_lost:
+            return False
+        
+        self.status = self.Status.LOST
+        self.lost_at = timezone.now()
+        self.lost_by = user
+        self.save(update_fields=["status", "lost_at", "lost_by"])
+        
+        return True
+
     def assign_section(self, product):
         section_type = product.product_type
         section_name = product.get_product_type_display()

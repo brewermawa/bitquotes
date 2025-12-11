@@ -24,7 +24,12 @@ urlpatterns = [
     #Productos relacionados.
     path("product/<int:pk>/related/", views.related_products, name="related_products"),
 
-    path("quotes/<int:pk>/comments/add/", views.quote_add_comment, name="quote_add_comment"),
-    path("quotes/<int:pk>/approve/", views.quote_approve, name="quote_approve"),
-    path("quotes/<int:pk>/close_internal/", views.quote_close_internal, name="quote_close_internal"),
+    path("<int:pk>/comments/add/", views.quote_add_comment, name="quote_add_comment"),
+    path("<int:pk>/approve/", views.quote_approve, name="quote_approve"),
+    path("<int:pk>/close_internal/", views.quote_close_internal, name="quote_close_internal"),
+    path("<int:pk>/mark_won/", views.quote_mark_won, name="quote_mark_won"),
+    path("<int:pk>/mark_lost/", views.quote_mark_lost, name="quote_mark_lost"),
+
+    #URL temporal QUITAR
+    path("<int:pk>/send/", views.quote_send, name="quote_send"),
 ] 

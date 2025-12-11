@@ -105,22 +105,25 @@
 
                             <!-- Enviar -->
                             {% if quote.can_send %}
-                                <div class="btn-group btn-group-sm" role="group">
-                                    <a href="#" type="button" class="btn btn-outline-primary">
-                                        <i class="bi bi-envelope-arrow-up me-1"></i> Enviar
-                                    </a>
-                                </div>
-                            {% endif %}
+                            <a href="{% url 'quotes:quote_send' quote.pk %}" class="btn btn-outline-primary btn-sm">
+                                <i class="bi bi-envelope-arrow-up me-1"></i>
+                                {% if quote.status == quote.Status.APPROVED %}
+                                    Enviar
+                                {% else %}
+                                    Reenviar
+                                {% endif %}
+                            </a>
+                        {% endif %}
 
                             <!-- Ganada / Perdida -->
                             <div class="btn-group btn-group-sm" role="group">
                                 {% if quote.can_mark_won %}
-                                    <a href="#" type="button" class="btn btn-outline-success">
+                                    <a href="{% url 'quotes:quote_mark_won' quote.pk %}" type="button" class="btn btn-outline-success">
                                         <i class="bi bi-trophy me-1"></i> Ganada
                                     </a>
                                 {% endif %}
                                 {% if quote.can_mark_lost %}
-                                    <a href="#" type="button" class="btn btn-outline-danger">
+                                    <a href="{% url 'quotes:quote_mark_lost' quote.pk %}" type="button" class="btn btn-outline-danger">
                                         <i class="bi bi-x-octagon me-1"></i> Perdida
                                     </a>
                                 {% endif %}

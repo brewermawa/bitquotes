@@ -111,6 +111,14 @@ def quote_edit(request, pk):
     quote_line_form = QuoteLineForm()
     user = request.user
 
+    if quote.status not in [
+            quote.Status.DRAFT,
+            quote.Status.APPROVED,
+            quote.Status.PENDING_APPROVAL
+        ]:
+        messages.warning(request, "No se puede editar una cotización en este status.")
+        return redirect("quotes:quote_detail", pk=quote.pk)
+
     # Permisos: solo CSR / manager pueden editar cualquier cotización.
     # Vendedor solo puede editar las suyas.
     if not (user.profile.is_csr or user.profile.is_manager):
@@ -154,24 +162,14 @@ def quote_edit(request, pk):
 
         # 5) Guardar términos de pago / condiciones de la cotización
         payment_terms_form = QuotePaymentTermsForm(request.POST, instance=quote)
+        payment_terms_form.is_valid()  # opcional, pero no estorba
+        payment_terms_form.save()
 
-        if payment_terms_form.is_valid():
-            payment_terms_form.save()
+        # 6) Invalidate approval si estaba APPROVED o PENDING_APPROVAL
+        quote.reevaluate_after_edit()
 
-            messages.success(request, "La cotización se guardó correctamente.")
-            # 6) Redirigir a quote_detail después de guardar
-            return redirect("quotes:quote_detail", pk=quote.pk)
-        else:
-            # Si hay errores en el form, volvemos a mostrar quote_edit
-            quote_lines = QuoteLine.objects.filter(quote=quote)
-
-            return render(request, "quotes/quote_edit.html", {
-                "quote_line_form": quote_line_form,
-                "payment_terms_form": payment_terms_form,  # con errores
-                "quote": quote,
-                "quote_lines": quote_lines,
-                "discount_choices": discount_choices,
-            })
+        messages.success(request, "La cotización se guardó correctamente.")
+        return redirect("quotes:quote_detail", pk=quote.pk)
 
     else:
         # GET: cargar formulario con la info actual
@@ -185,6 +183,7 @@ def quote_edit(request, pk):
         "quote_lines": quote_lines,
         "discount_choices": discount_choices,
     })
+
 
 
 @login_required
@@ -263,10 +262,73 @@ def quote_close_internal(request, pk):
 @login_required
 def quote_approve(request, pk):
     quote = get_object_or_404(Quote, pk=pk)
-    quote.approve(request.user)
-    quote.save()
+    user = request.user
 
+    # Permisos: solo manager (y opcionalmente CSR)
+    if not (user.profile.is_manager):
+        messages.error(request, "No tienes permisos para aprobar esta cotización.")
+        return redirect("quotes:quote_detail", pk=quote.pk)
+
+    # Solo tiene sentido aprobar si está en PENDING_APPROVAL
+    if quote.status != Quote.Status.PENDING_APPROVAL:
+        messages.warning(request, "Solo puedes aprobar cotizaciones en revisión.")
+        return redirect("quotes:quote_detail", pk=quote.pk)
+
+    quote.approve(user=user)
+
+    messages.success(request, "La cotización ha sido aprobada.")
     return redirect("quotes:quote_detail", pk=pk)
+
+@login_required
+def quote_send(request, pk):
+    quote = get_object_or_404(Quote, pk=pk)
+    user = request.user
+
+    # Permisos
+    if not (user.profile.is_csr or user.profile.is_manager or quote.user == user):
+        messages.error(request, "No tienes permisos para enviar esta cotización.")
+        return redirect("quotes:quote_detail", pk=quote.pk)
+
+    # Llamamos la lógica del modelo
+    if quote.mark_sent(user=user):
+        messages.success(request, "La cotización se ha marcado como enviada.")
+    else:
+        messages.warning(request, "Solo puedes enviar cotizaciones aprobadas.")
+
+    return redirect("quotes:quote_detail", pk=quote.pk)
+
+@login_required
+def quote_mark_won(request, pk):
+    quote = get_object_or_404(Quote, pk=pk)
+    user = request.user
+
+    if not (user.profile.is_csr or user.profile.is_manager or quote.user == user):
+        messages.error(request, "No tienes permisos para actualizar esta cotización.")
+        return redirect("quotes:quote_detail", pk=quote.pk)
+
+    if quote.mark_won(user=user):
+        messages.success(request, "La cotización se ha marcado como ganada.")
+    else:
+        messages.warning(request, "Solo puedes marcar como ganada una cotización enviada.")
+
+    return redirect("quotes:quote_detail", pk=quote.pk)
+
+
+@login_required
+def quote_mark_lost(request, pk):
+    quote = get_object_or_404(Quote, pk=pk)
+    user = request.user
+
+    if not (user.profile.is_csr or user.profile.is_manager or quote.user == user):
+        messages.error(request, "No tienes permisos para actualizar esta cotización.")
+        return redirect("quotes:quote_detail", pk=quote.pk)
+
+    if quote.mark_lost(user=user):
+        messages.success(request, "La cotización se ha marcado como perdida.")
+    else:
+        messages.warning(request, "Solo puedes marcar como perdida una cotización enviada.")
+
+    return redirect("quotes:quote_detail", pk=quote.pk)
 
 @login_required
 def quote_add_comment(request, pk):
