@@ -2,10 +2,12 @@ from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.views.generic import ListView, CreateView
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.urls import reverse_lazy, reverse
-from django.http import HttpResponseBadRequest, HttpResponse
+from django.urls import reverse
+from django.http import HttpResponse
 from django.db.models import Q
 from django.contrib import messages
+from django.template.loader import get_template
+from weasyprint import HTML
 
 from .models import Quote, QuoteLine, QuoteSection, QuoteComment
 from .forms import QuoteHeadForm, QuotePaymentTermsForm, QuoteLineForm, QuoteCommentForm
@@ -403,5 +405,20 @@ def related_products(request, pk):
         "related_products": related_products,
     })
 
-#TODO: Cuando se seleccione un producto en el buscador para agregar línea, reiniciar el buscador
+def quote_pdf_test(request, pk):
+    quote = get_object_or_404(Quote, pk=pk)
 
+    template = get_template("quotes/quote_pdf.html")
+    html_string = template.render({
+        "quote": quote,
+        "request": request,
+    })
+
+    html = HTML(string=html_string, base_url=request.build_absolute_uri())
+    pdf_bytes = html.write_pdf()
+
+    filename = f"TEST-cotizacion-{quote.id}.pdf"
+
+    response = HttpResponse(pdf_bytes, content_type="application/pdf")
+    response["Content-Disposition"] = f'inline; filename="{filename}"'
+    return response

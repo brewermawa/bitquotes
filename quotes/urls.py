@@ -32,4 +32,8 @@ urlpatterns = [
 
     #URL temporal QUITAR
     path("<int:pk>/send/", views.quote_send, name="quote_send"),
-] 
+
+    # URL temporal para pruebas de PDF
+    path("pdf-test/<int:pk>/", views.quote_pdf_test, name="quote_pdf_test"),
+]
+ 
