@@ -97,7 +97,7 @@
                                 {% endif %}
                                 
                                 {% if quote.can_generate_pdf %}
-                                    <a href="#" class="btn btn-outline-primary">
+                                    <a href="{% url 'quotes:quote_pdf_test' quote.pk %}" class="btn btn-outline-primary">
                                         <i class="bi bi-filetype-pdf me-1"></i> PDF
                                     </a>
                                 {% endif %}

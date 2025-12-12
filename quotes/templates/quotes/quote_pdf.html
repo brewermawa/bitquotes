@@ -11,15 +11,10 @@
 
     <!-- ENCABEZADO EMPRESA -->
     <div class="header">
-        <table class="header-table">
+        <table class="header-table header-table-v2">
             <tr>
-                <!-- Logo BI a la izquierda -->
-                <td class="header-logo-left">
-                    <img src="{% static 'images/logo-bit.png' %}" class="logo-bi">
-                </td>
-
-                <!-- Texto centrado -->
-                <td class="header-center">
+                <!-- Texto a la izquierda -->
+                <td class="header-left">
                     <div class="company-name">
                         Big Impression Tecnología, SA de CV
                     </div>
@@ -31,15 +26,14 @@
                     </div>
                 </td>
 
-                <!-- Logo HP a la derecha -->
-                <td class="header-logo-right">
-                    <img src="{% static 'images/logo-hp.png' %}" class="logo-hp">
+                <!-- Logo BI a la derecha -->
+                <td class="header-right">
+                    <img src="{% static 'images/logo-bit.png' %}" class="logo-bi">
                 </td>
             </tr>
 
-            <!-- Línea de texto inferior -->
             <tr>
-                <td colspan="3" class="header-tagline">
+                <td colspan="2" class="header-tagline">
                     Contamos con toda la línea de cartuchos HP originales, cabezales, papeles para impresión,
                     servicio de mantenimiento preventivo y correctivo, servicio de impresión.
                 </td>
@@ -47,133 +41,118 @@
         </table>
     </div>
 
+    <!-- BLOQUE CLIENTE Y FECHA -->
+    <div class="client-date-row">
+        <div class="client-block">
+            <div class="client-name">
+                {{ quote.customer.name }}
+            </div>
+            <div class="client-contact">
+                Attn: {{ quote.contact.full_name }}<br>
+                {% if quote.contact.phone %}
+                    Tel. {{ quote.contact.formatted_phone }}    
+                {% endif %}
 
-    <!-- BLOQUE CLIENTE -->
-    <div class="client-block">
-        {% comment %}
-        Ajusta estos campos a tu modelo real:
-        quote.customer.name, quote.customer.contact_name, quote.customer.phone, etc.
-        {% endcomment %}
-        {{ quote.customer.name }}<br>
-        Attn: {{ quote.customer.contact_name }}<br>
-        Tel. {{ quote.customer.phone }}
-    </div>
+                {% if quote.contact.phone and quote.contact.cel_phone %}
+                    <br>
+                {% endif %}
 
-    <!-- CIUDAD + FECHA -->
-    <div class="right-date">
-        Monterrey, N.L. a {{ quote.created_at|date:"j \\de F \\de Y" }}
+                {% if quote.contact.cel_phone %}
+                    Cel. {{ quote.contact.formatted_cel_phone }}    
+                {% endif %}
+            </div>
+        </div>
+        <div class="right-date">
+            Monterrey, N.L. a {{ quote.created|date:"j \\d\\e F \\d\\e Y" }}
+        </div>
     </div>
 
     <!-- SALUDO / INTRO -->
     <p class="greeting">
-        Estimado {{ quote.customer.contact_name }}:
+        Estimado {{ quote.contact.first_name }}:
         <br><br>
         Agradeciendo su preferencia por los productos y servicios que ofrecemos en BI Tecnología,
-        a continuación le presento la cotización de los equipos solicitados para su consideración:
+        a continuación le presento la cotización de los productos solicitados para su consideración:
     </p>
 
-    <!-- TÍTULO DE LA SECCIÓN PRINCIPAL -->
-    <div class="section-title">
-        {{ quote.title|default:"HP Designjet T850 MFP" }}
-    </div>
+    {% for section in quote.quote_sections.all %}
+    {% cycle 'qs-blue' 'qs-peach' as section_theme silent %}
 
-    <!-- TABLA DE PRODUCTOS -->
-    <table class="items-table">
+    <div class="quote-section {{ section_theme }}">
+        <table class="qs-table">
         <thead>
-            <tr>
-                <th style="width: 12%;">Clave</th>
-                <th style="width: 44%;">Descripción</th>
-                <th class="text-center" style="width: 10%;">Cant.</th>
-                <th class="text-right" style="width: 17%;">Precio unitario</th>
-                <th class="text-right" style="width: 17%;">Subtotal</th>
+            <tr class="qs-head-row">
+            <th class="qs-title" colspan="2">{{ section.name }}</th>
+            <th class="qs-col-qty">Cantidad</th>
+            <th class="qs-col-unit">Precio<br>unitario</th>
+            <th class="qs-col-sub">Subtotal</th>
             </tr>
         </thead>
+
         <tbody>
-            {% for line in quote.lines.all %}
-                <tr>
-                    <td>
-                        {% if line.product.sku %}
-                            {{ line.product.sku }}
-                        {% else %}
-                            -
-                        {% endif %}
-                    </td>
-                    <td>
-                        <strong>{{ line.product.name }}</strong><br>
-                        {% if line.product.short_description %}
-                            <span class="item-short-description">
-                                {{ line.product.short_description }}
-                            </span>
-                        {% endif %}
-                    </td>
-                    <td class="text-center">
-                        {{ line.quantity|floatformat:0 }}
-                    </td>
-                    <td class="text-right">
-                        {% if line.unit_price and line.unit_price > 0 %}
-                            ${{ line.unit_price|floatformat:2|intcomma }}
-                        {% else %}
-                            Sin costo
-                        {% endif %}
-                    </td>
-                    <td class="text-right">
-                        {% if line.line_total and line.line_total > 0 %}
-                            ${{ line.line_total|floatformat:2|intcomma }}
-                        {% else %}
-                            $0.00
-                        {% endif %}
-                    </td>
-                </tr>
+            {% for line in section.lines.all %}
+            <tr class="qs-item-row">
+                <td class="qs-sku">
+                {% if line.product.sku %}{{ line.product.sku }}{% else %}-{% endif %}
+                </td>
+
+                <td class="qs-desc">
+                <div class="qs-item-name">{{ line.product.name }}</div>
+
+                {% if line.description %}
+                    <div class="qs-item-detail">{{ line.description }}</div>
+                {% elif line.product.short_description %}
+                    <div class="qs-item-detail">{{ line.product.short_description }}</div>
+                {% endif %}
+                </td>
+
+                <td class="qs-qty">
+                {{ line.quantity|floatformat:0 }}
+                </td>
+
+                <td class="qs-unit">
+                {% if line.unit_price and line.unit_price > 0 %}
+                    ${{ line.unit_price|floatformat:2|intcomma }}
+                {% else %}
+                    Sin costo
+                {% endif %}
+                </td>
+
+                <td class="qs-subtotal">
+                {% if line.line_total and line.line_total > 0 %}
+                    ${{ line.line_total|floatformat:2|intcomma }}
+                {% else %}
+                    <!-- en tu ejemplo, “Sin costo” no muestra subtotal -->
+                    &nbsp;
+                {% endif %}
+                </td>
+            </tr>
             {% endfor %}
+
+            <!-- Totales por sección (derecha, abajo) -->
+            <tr class="qs-totals-row">
+            <td colspan="5">
+                <div class="qs-totals">
+                <div class="qs-tot-line">
+                    <span class="qs-tot-label">Subtotal</span>
+                    <span class="qs-tot-val">${{ section.subtotal|floatformat:2|intcomma }}</span>
+                </div>
+                <div class="qs-tot-line">
+                    <span class="qs-tot-label">IVA</span>
+                    <span class="qs-tot-val">${{ section.tax_total|floatformat:2|intcomma }}</span>
+                </div>
+                <div class="qs-tot-line qs-tot-strong">
+                    <span class="qs-tot-label">Total</span>
+                    <span class="qs-tot-val">${{ section.total|floatformat:2|intcomma }}</span>
+                </div>
+                </div>
+            </td>
+            </tr>
+
         </tbody>
-    </table>
-
-    <!-- TOTALES -->
-    <table class="totals-table">
-        <tr>
-            <td class="text-right totals-label">Subtotal</td>
-            <td class="text-right totals-value">
-                ${{ quote.subtotal|floatformat:2|intcomma }}
-            </td>
-        </tr>
-        <tr>
-            <td class="text-right totals-label">IVA</td>
-            <td class="text-right totals-value">
-                ${{ quote.tax_total|floatformat:2|intcomma }}
-            </td>
-        </tr>
-        <tr>
-            <td class="text-right totals-label totals-label-strong">Total</td>
-            <td class="text-right totals-value totals-value-strong">
-                ${{ quote.total|floatformat:2|intcomma }}
-            </td>
-        </tr>
-    </table>
-
-    <!-- NOTAS -->
-    <div class="notes">
-        <ul>
-            <li>Cotización válida al {{ quote.valid_until|date:"j \\d\\e F \\d\\e Y" }}</li>
-            <li>Precios sujetos a cambio sin previo aviso</li>
-            <li>Precios en pesos mexicanos más 16% IVA</li>
-            <li>Todos los equipos incluyen 1 año de garantía cubierta por el fabricante</li>
-        </ul>
+        </table>
     </div>
-
-    <!-- BADGE DISTRIBUIDOR -->
-    <div class="distributor-badge">
-        DISTRIBUIDOR AUTORIZADO HP DESIGNJET
-    </div>
-
-    <!-- FIRMA -->
-    <div class="footer-sign">
-        Quedo de Usted atento a cualquier duda o aclaración,
-        <br><br>
-        <span class="footer-sign-name">Mauricio Guerra Vargas</span><br>
-        Ventas<br>
-        mguerra@bi-tecnologia.com<br>
-        (81)1477-1790 y 91
-    </div>
+    {% endfor %}
 
 </body>
 </html>

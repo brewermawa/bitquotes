@@ -1,0 +1,183 @@
+{% load static humanize %}
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <title>Cotización {{ quote.number }}</title>
+    <link rel="stylesheet" href="{% static 'css/quote_pdf.css' %}">
+</head>
+<body>
+
+    <!-- ENCABEZADO EMPRESA -->
+    <div class="header">
+        <table class="header-table header-table-v2">
+            <tr>
+                <!-- Texto a la izquierda -->
+                <td class="header-left">
+                    <div class="company-name">
+                        Big Impression Tecnología, SA de CV
+                    </div>
+                    <div class="company-info">
+                        Vasconcelos 101 Local 1<br>
+                        Bosques del Valle, San Pedro GG C.P. 66250<br>
+                        <span class="company-web">http://www.bi-tecnologia.com</span><br>
+                        <span class="company-distributor">DISTRIBUIDOR AUTORIZADO HP DESIGNJET</span>
+                    </div>
+                </td>
+
+                <!-- Logo BI a la derecha -->
+                <td class="header-right">
+                    <img src="{% static 'images/logo-bit.png' %}" class="logo-bi">
+                </td>
+            </tr>
+
+            <tr>
+                <td colspan="2" class="header-tagline">
+                    Contamos con toda la línea de cartuchos HP originales, cabezales, papeles para impresión,
+                    servicio de mantenimiento preventivo y correctivo, servicio de impresión.
+                </td>
+            </tr>
+        </table>
+    </div>
+
+    <!-- BLOQUE CLIENTE Y FECHA -->
+    <div class="client-date-row">
+        <div class="client-block">
+            <div class="client-name">
+                {{ quote.customer.name }}
+            </div>
+            <div class="client-contact">
+                Attn: {{ quote.contact.full_name }}<br>
+                {% if quote.contact.phone %}
+                    Tel. {{ quote.contact.formatted_phone }}    
+                {% endif %}
+
+                {% if quote.contact.phone and quote.contact.cel_phone %}
+                    <br>
+                {% endif %}
+
+                {% if quote.contact.cel_phone %}
+                    Cel. {{ quote.contact.formatted_cel_phone }}    
+                {% endif %}
+            </div>
+        </div>
+        <div class="right-date">
+            Monterrey, N.L. a {{ quote.created|date:"j \\d\\e F \\d\\e Y" }}
+        </div>
+    </div>
+
+
+    <!-- SALUDO / INTRO -->
+    <p class="greeting">
+        Estimado {{ quote.contact.first_name }}:
+        <br><br>
+        Agradeciendo su preferencia por los productos y servicios que ofrecemos en BI Tecnología,
+        a continuación le presento la cotización de los productos solicitados para su consideración:
+    </p>
+
+    <!-- TÍTULO DE LA SECCIÓN PRINCIPAL -->
+    <div class="section-title">
+        {{ quote.title|default:"HP Designjet T850 MFP" }}
+    </div>
+
+    <!-- TABLA DE PRODUCTOS -->
+    <table class="items-table">
+        <thead>
+            <tr>
+                <th style="width: 12%;">Clave</th>
+                <th style="width: 44%;">Descripción</th>
+                <th class="text-center" style="width: 10%;">Cant.</th>
+                <th class="text-right" style="width: 17%;">Precio unitario</th>
+                <th class="text-right" style="width: 17%;">Subtotal</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for line in quote.lines.all %}
+                <tr>
+                    <td>
+                        {% if line.product.sku %}
+                            {{ line.product.sku }}
+                        {% else %}
+                            -
+                        {% endif %}
+                    </td>
+                    <td>
+                        <strong>{{ line.product.name }}</strong><br>
+                        {% if line.product.short_description %}
+                            <span class="item-short-description">
+                                {{ line.product.short_description }}
+                            </span>
+                        {% endif %}
+                    </td>
+                    <td class="text-center">
+                        {{ line.quantity|floatformat:0 }}
+                    </td>
+                    <td class="text-right">
+                        {% if line.unit_price and line.unit_price > 0 %}
+                            ${{ line.unit_price|floatformat:2|intcomma }}
+                        {% else %}
+                            Sin costo
+                        {% endif %}
+                    </td>
+                    <td class="text-right">
+                        {% if line.line_total and line.line_total > 0 %}
+                            ${{ line.line_total|floatformat:2|intcomma }}
+                        {% else %}
+                            $0.00
+                        {% endif %}
+                    </td>
+                </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <!-- TOTALES -->
+    <table class="totals-table">
+        <tr>
+            <td class="text-right totals-label">Subtotal</td>
+            <td class="text-right totals-value">
+                ${{ quote.subtotal|floatformat:2|intcomma }}
+            </td>
+        </tr>
+        <tr>
+            <td class="text-right totals-label">IVA</td>
+            <td class="text-right totals-value">
+                ${{ quote.tax_total|floatformat:2|intcomma }}
+            </td>
+        </tr>
+        <tr>
+            <td class="text-right totals-label totals-label-strong">Total</td>
+            <td class="text-right totals-value totals-value-strong">
+                ${{ quote.total|floatformat:2|intcomma }}
+            </td>
+        </tr>
+    </table>
+
+    <!-- NOTAS -->
+    <div class="notes">
+        <ul>
+            <li>Cotización válida al {{ quote.valid_until|date:"j \\d\\e F \\d\\e Y" }}</li>
+            <li>Precios sujetos a cambio sin previo aviso</li>
+            <li>Precios en pesos mexicanos más 16% IVA</li>
+            <li>Todos los equipos incluyen 1 año de garantía cubierta por el fabricante</li>
+        </ul>
+    </div>
+
+    <!-- BADGE DISTRIBUIDOR -->
+    <div class="distributor-badge">
+        DISTRIBUIDOR AUTORIZADO HP DESIGNJET
+    </div>
+
+    <!-- FIRMA -->
+    <div class="footer-sign">
+        Quedo de Usted atento a cualquier duda o aclaración,
+        <br><br>
+        <span class="footer-sign-name">Mauricio Guerra Vargas</span><br>
+        Ventas<br>
+        mguerra@bi-tecnologia.com<br>
+        (81)1477-1790 y 91
+    </div>
+
+</body>
+</html>
