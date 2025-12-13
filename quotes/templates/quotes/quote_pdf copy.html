@@ -49,17 +49,9 @@
             </div>
             <div class="client-contact">
                 Attn: {{ quote.contact.full_name }}<br>
-                {% if quote.contact.phone %}
-                    Tel. {{ quote.contact.formatted_phone }}    
-                {% endif %}
-
-                {% if quote.contact.phone and quote.contact.cel_phone %}
-                    <br>
-                {% endif %}
-
-                {% if quote.contact.cel_phone %}
-                    Cel. {{ quote.contact.formatted_cel_phone }}    
-                {% endif %}
+                {% if quote.contact.phone %}Tel. {{ quote.contact.formatted_phone }}{% endif %}
+                {% if quote.contact.phone and quote.contact.cel_phone %}<br>{% endif %}
+                {% if quote.contact.cel_phone %}Cel. {{ quote.contact.formatted_cel_phone }}{% endif %}
             </div>
         </div>
         <div class="right-date">
@@ -67,117 +59,187 @@
         </div>
     </div>
 
-
     <!-- SALUDO / INTRO -->
     <p class="greeting">
-        Estimado {{ quote.contact.first_name }}:
-        <br><br>
+        <strong>Estimado {{ quote.contact.first_name }}:</strong>
+        <br>
         Agradeciendo su preferencia por los productos y servicios que ofrecemos en BI Tecnología,
         a continuación le presento la cotización de los productos solicitados para su consideración:
     </p>
 
-    <!-- TÍTULO DE LA SECCIÓN PRINCIPAL -->
-    <div class="section-title">
-        {{ quote.title|default:"HP Designjet T850 MFP" }}
-    </div>
+    {% for section in quote.quote_sections.all %}
+    {% cycle 'qs-blue' 'qs-peach' as section_theme silent %}
+        <div class="quote-section {{ section_theme }}">
+            <table class="qs-table">
+                <colgroup>
+                    <col style="width:10%">
+                    <col style="width:55%">
+                    <col style="width:10%">
+                    <col style="width:14%">
+                    <col style="width:11%">
+                </colgroup>
 
-    <!-- TABLA DE PRODUCTOS -->
-    <table class="items-table">
-        <thead>
+                <thead>
+                    <tr class="qs-head-row">
+                    <th colspan="2" class="qs-section-title">{{ section.name }}</th>
+                    <th class="qs-col-h text-center">Cantidad</th>
+                    <th class="qs-col-h text-right">Precio unitario</th>
+                    <th class="qs-col-h text-right">Subtotal</th>
+                    </tr>
+                </thead>
+
+                <tbody>
+                    {% for line in section.section_lines.all %}
+                        <tr class="qs-item-row">
+                            <!-- Col 1: SKU / clave -->
+                            <td class="qs-sku">
+                                {% if line.product.sku %}{{ line.product.sku }}{% else %}-{% endif %}
+                            </td>
+
+                            <!-- Col 2: descripción (60%) -->
+                            <td class="qs-desc">
+                                <div class="qs-item-name">{{ line.product.name }}</div>
+
+                                {% if line.product.description %}
+                                    <div class="qs-item-detail">{{ line.product.description }}</div>
+                                {% endif %}
+                            </td>
+
+                            <!-- Col 3: cantidad -->
+                            <td class="qs-qty text-center">
+                                {{ line.quantity|floatformat:0 }}
+                            </td>
+
+                            <!-- Col 4: precio unitario -->
+                            <td class="qs-unit text-right">
+                                {% if line.unit_price and line.unit_price > 0 %}
+                                    ${{ line.unit_price|floatformat:2|intcomma }}
+                                {% else %}
+                                    Sin costo
+                                {% endif %}
+                            </td>
+
+                            <!-- Col 5: subtotal -->
+                            <td class="qs-subtotal text-right">
+                                {% if line.gross_total and line.gross_total > 0 %}
+                                    ${{ line.gross_total|floatformat:2|intcomma }}
+                                {% else %}
+                                    —
+                                {% endif %}
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    <!-- Totales por sección -->
+                    <tr class="qs-totals-spacer">
+                        <td colspan="5"></td>
+                    </tr>
+
+                    <tr class="qs-totals-row">
+                        <td colspan="4" class="qs-tot-label">Subtotal</td>
+                        <td class="qs-tot-val">${{ section.get_subtotal|floatformat:2|intcomma }}</td>
+                    </tr>
+
+                    {% if section.get_discount and section.get_discount > 0 %}
+                        <tr class="qs-totals-row">
+                            <td colspan="4" class="qs-tot-label">Descuento</td>
+                            <td class="qs-tot-val">-${{ section.get_discount|floatformat:2|intcomma }}</td>
+                        </tr>
+
+                        <tr class="qs-totals-row">
+                            <td colspan="4" class="qs-tot-label">Subtotal después de descuento</td>
+                            <td class="qs-tot-val">${{ section.net_subtotal|floatformat:2|intcomma }}</td>
+                        </tr>
+                    {% endif %}
+
+                    <tr class="qs-totals-row">
+                        <td colspan="4" class="qs-tot-label">IVA</td>
+                        <td class="qs-tot-val">${{ section.tax|floatformat:2|intcomma }}</td>
+                    </tr>
+
+                    <tr class="qs-totals-row qs-totals-grand">
+                        <td colspan="4" class="qs-tot-label">Total</td>
+                        <td class="qs-tot-val">${{ section.total|floatformat:2|intcomma }}</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    {% endfor %}
+
+    <!-- CONDICIONES COMERCIALES -->
+    <div class="commercial-terms">
+        <table class="commercial-table">
             <tr>
-                <th style="width: 12%;">Clave</th>
-                <th style="width: 44%;">Descripción</th>
-                <th class="text-center" style="width: 10%;">Cant.</th>
-                <th class="text-right" style="width: 17%;">Precio unitario</th>
-                <th class="text-right" style="width: 17%;">Subtotal</th>
+                <td class="ct-label">Vigencia de la cotización:</td>
+                <td class="ct-value">
+                    {{ quote.valid_until|default:15 }}
+                </td>
             </tr>
-        </thead>
-        <tbody>
-            {% for line in quote.lines.all %}
-                <tr>
-                    <td>
-                        {% if line.product.sku %}
-                            {{ line.product.sku }}
-                        {% else %}
-                            -
-                        {% endif %}
-                    </td>
-                    <td>
-                        <strong>{{ line.product.name }}</strong><br>
-                        {% if line.product.short_description %}
-                            <span class="item-short-description">
-                                {{ line.product.short_description }}
-                            </span>
-                        {% endif %}
-                    </td>
-                    <td class="text-center">
-                        {{ line.quantity|floatformat:0 }}
-                    </td>
-                    <td class="text-right">
-                        {% if line.unit_price and line.unit_price > 0 %}
-                            ${{ line.unit_price|floatformat:2|intcomma }}
-                        {% else %}
-                            Sin costo
-                        {% endif %}
-                    </td>
-                    <td class="text-right">
-                        {% if line.line_total and line.line_total > 0 %}
-                            ${{ line.line_total|floatformat:2|intcomma }}
-                        {% else %}
-                            $0.00
-                        {% endif %}
-                    </td>
-                </tr>
-            {% endfor %}
-        </tbody>
-    </table>
 
-    <!-- TOTALES -->
-    <table class="totals-table">
-        <tr>
-            <td class="text-right totals-label">Subtotal</td>
-            <td class="text-right totals-value">
-                ${{ quote.subtotal|floatformat:2|intcomma }}
-            </td>
-        </tr>
-        <tr>
-            <td class="text-right totals-label">IVA</td>
-            <td class="text-right totals-value">
-                ${{ quote.tax_total|floatformat:2|intcomma }}
-            </td>
-        </tr>
-        <tr>
-            <td class="text-right totals-label totals-label-strong">Total</td>
-            <td class="text-right totals-value totals-value-strong">
-                ${{ quote.total|floatformat:2|intcomma }}
-            </td>
-        </tr>
-    </table>
+            <tr>
+                <td class="ct-label">Términos de pago:</td>
+                <td class="ct-value">
+                    {{ quote.get_payment_terms_display|default:"Transferencia / Depósito" }}
+                </td>
+            </tr>
 
-    <!-- NOTAS -->
-    <div class="notes">
-        <ul>
-            <li>Cotización válida al {{ quote.valid_until|date:"j \\d\\e F \\d\\e Y" }}</li>
-            <li>Precios sujetos a cambio sin previo aviso</li>
-            <li>Precios en pesos mexicanos más 16% IVA</li>
-            <li>Todos los equipos incluyen 1 año de garantía cubierta por el fabricante</li>
-        </ul>
+            <tr>
+                <td class="ct-label">Tiempo de entrega:</td>
+                <td class="ct-value">
+                    {% if quote.max_delivery_time %}
+                        {{ quote.max_delivery_time }} días hábiles
+                    {% else %}
+                        Inmediato
+                    {% endif %}
+
+                </td>
+            </tr>
+            <tr>
+                <td class="ct-label">Garantía:</td>
+                <td class="ct-value">
+                    {{ quote.warranty_terms|default:"Garantía directa del fabricante. No cubre daños por mal uso o variaciones eléctricas." }}
+                </td>
+            </tr>
+
+            <tr>
+                <td class="ct-label">Precios:</td>
+                <td class="ct-value">
+                    {{ quote.pricing_terms|default:"Precios en MXN. +16% IVA. Sujetos a cambio sin previo aviso. " }}
+                </td>
+            </tr>
+        </table>
     </div>
 
-    <!-- BADGE DISTRIBUIDOR -->
-    <div class="distributor-badge">
-        DISTRIBUIDOR AUTORIZADO HP DESIGNJET
-    </div>
+    <!-- FIRMA / VENDEDOR + LOGO HP -->
+    <div class="sig-row">
 
-    <!-- FIRMA -->
-    <div class="footer-sign">
-        Quedo de Usted atento a cualquier duda o aclaración,
-        <br><br>
-        <span class="footer-sign-name">Mauricio Guerra Vargas</span><br>
-        Ventas<br>
-        mguerra@bi-tecnologia.com<br>
-        (81)1477-1790 y 91
-    </div>
+        <!-- Línea de firma (100%) -->
+        <div class="sig-line"></div>
 
+        <!-- Contenido: firma (izq) + logo (der) -->
+        <div class="sig-content">
+
+            <div class="sig-left">
+                <div class="sig-company">Big Impression Tecnología</div>
+
+                <div class="sig-name">{{ quote.user.get_full_name }}</div>
+
+                <div class="sig-role">Asesor comercial</div>
+
+                <div class="sig-contact">
+                    Tel. {{ quote.user.profile.formatted_phone }} &nbsp;|&nbsp;
+                    Cel. {{ quote.user.profile.formatted_cel_phone }}
+                </div>
+
+                <div class="sig-email">{{ quote.user.email }}</div>
+
+                <div class="sig-web">www.bi-tecnologia.com</div>
+            </div>
+
+            <div class="sig-right">
+                <img src="{% static 'images/logo-hp.png' %}" class="sig-hp-logo">
+            </div>
+
+        </div>
+    </div>
 </body>
 </html>

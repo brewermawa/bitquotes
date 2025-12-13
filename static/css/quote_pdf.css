@@ -1,16 +1,19 @@
 /* ========================================================= */
-/* CONFIGURACIÓN DE PÁGINA                                   */
+/* CONFIGURACIÓN DE PÁGINA (WEASYPRINT)                       */
 /* ========================================================= */
 
 @page {
     size: Letter;
-    margin: 2.2cm 2.2cm 2.4cm 2.2cm;
+    margin: 1.2cm 2.2cm 0.1cm 2.2cm;
 }
 
 body {
     font-family: sans-serif;
     font-size: 11px;
     line-height: 1.4;
+
+    /* CLAVE: reserva espacio real para el footer fijo */
+    padding-bottom: 2.6cm;
 }
 
 
@@ -75,7 +78,7 @@ body {
 
 
 /* ========================================================= */
-/* BLOQUE CLIENTE + FECHA (CERRADO)                          */
+/* BLOQUE CLIENTE + FECHA                                    */
 /* ========================================================= */
 
 .client-date-row {
@@ -108,8 +111,9 @@ body {
     line-height: 1.3;
 }
 
+
 /* ========================================================= */
-/* SALUDO / INTRO                                             */
+/* SALUDO / INTRO                                            */
 /* ========================================================= */
 
 .greeting {
@@ -132,49 +136,41 @@ body {
 /* ========================================================= */
 
 .quote-section {
-    padding: 0;                 /* CLAVE para edge-to-edge */
+    padding: 0;
     margin-top: 10px;
     border-radius: 2px;
+    page-break-inside: avoid;
 }
 
-/* Colores base */
+/* Colores */
 .qs-blue  { background: #dbe7f3; }
 .qs-peach { background: #f7dcc7; }
 
 
 /* ========================================================= */
-/* TABLA DE PRODUCTOS (5 COLUMNAS)                           */
+/* TABLA DE PRODUCTOS                                        */
 /* ========================================================= */
 
 .qs-table {
     width: 100%;
     border-collapse: collapse;
-    border-spacing: 0;
     table-layout: fixed;
 }
 
-/* Colgroup manda los anchos */
 .qs-table col:nth-child(1) { width: 10%; }
 .qs-table col:nth-child(2) { width: 55%; }
 .qs-table col:nth-child(3) { width: 10%; }
 .qs-table col:nth-child(4) { width: 14%; }
 .qs-table col:nth-child(5) { width: 11%; }
 
-/* Sin bordes */
 .qs-table th,
 .qs-table td {
     border: none !important;
     background: transparent;
     vertical-align: top;
-}
-
-/* Padding base */
-.qs-table th,
-.qs-table td {
     padding: 3px 5px;
 }
 
-/* Padding lateral tipo “bloque” */
 .qs-table thead th:first-child,
 .qs-table tbody td:first-child {
     padding-left: 10px;
@@ -187,25 +183,17 @@ body {
 
 
 /* ========================================================= */
-/* THEAD – COLOR MÁS OSCURO (SIN LÍNEAS FANTASMA)            */
+/* THEAD                                                     */
 /* ========================================================= */
 
-/* Pintar el fondo en el TR (no en los TH) */
-.qs-blue thead tr {
-    background: #b8cfe4;
-}
+.qs-blue thead tr { background: #b8cfe4; }
+.qs-peach thead tr { background: #e8bfa0; }
 
-.qs-peach thead tr {
-    background: #e8bfa0;
-}
-
-/* Los TH deben ser transparentes */
 .qs-blue thead th,
 .qs-peach thead th {
     background: transparent !important;
 }
 
-/* Encabezado */
 .qs-head-row th {
     font-weight: bold;
     font-size: 9.5px;
@@ -213,7 +201,6 @@ body {
     padding-bottom: 6px;
 }
 
-/* Título de sección (colspan=2) */
 .qs-section-title {
     font-size: 18px !important;
     font-weight: bold;
@@ -222,7 +209,7 @@ body {
 
 
 /* ========================================================= */
-/* CUERPO DE LA TABLA                                        */
+/* CUERPO                                                    */
 /* ========================================================= */
 
 .qs-sku {
@@ -230,7 +217,6 @@ body {
     white-space: nowrap;
     font-size: 10px;
     line-height: 1.15;
-    
 }
 
 .qs-desc {
@@ -253,40 +239,36 @@ body {
 }
 
 .qs-item-detail {
+    font-size: 9px;
     line-height: 1.15;
     margin-top: 0;
-    font-size: 9px;
     text-align: center;
     color: #555;
 }
 
 .qs-item-row td {
-    padding-top: 0px;
-    padding-bottom: 0px;
-}
-
-.qs-item-row:last-of-type td {
-    padding-bottom: 6px;   /* pequeño espacio antes de subtotales */
-}
-
-
-/* ========================================================= */
-/* TOTALES POR SECCIÓN – AJUSTE FINO FINAL                   */
-/* ========================================================= */
-
-/* Espacio antes de iniciar totales */
-.qs-totals-spacer td {
-    padding-top: 1px;     /* ↓ antes era 3px (−2px) */
+    padding-top: 0;
     padding-bottom: 0;
 }
 
-/* Filas de totales más compactas */
-.qs-totals-row td {
-    padding-top: 0;       /* ↓ antes 1px (−1px) */
-    padding-bottom: 0;    /* ↓ antes 1px (−1px) */
+.qs-item-row:last-of-type td {
+    padding-bottom: 6px;
 }
 
-/* Etiqueta (colspan=4) */
+
+/* ========================================================= */
+/* TOTALES POR SECCIÓN                                       */
+/* ========================================================= */
+
+.qs-totals-spacer td {
+    padding-top: 1px;
+}
+
+.qs-totals-row td {
+    padding-top: 0;
+    padding-bottom: 0;
+}
+
 .qs-tot-label {
     text-align: right;
     font-weight: bold;
@@ -294,7 +276,6 @@ body {
     padding-right: 10px;
 }
 
-/* Monto (col 5) */
 .qs-tot-val {
     text-align: right;
     font-weight: bold;
@@ -303,9 +284,8 @@ body {
     padding-right: 10px;
 }
 
-/* Espacio pequeño debajo del TOTAL */
 .qs-totals-grand td {
-    padding-bottom: 6px;  /* 👈 aire visual antes de la siguiente sección */
+    padding-bottom: 6px;
 }
 
 .qs-totals-grand .qs-tot-label,
@@ -314,33 +294,6 @@ body {
 }
 
 
-
-/* ========================================================= */
-/* NOTAS / FOOTER                                            */
-/* ========================================================= */
-
-.notes {
-    margin-top: 10px;
-    font-size: 9px;
-}
-
-.footer-sign {
-    margin-top: 16px;
-    font-size: 10px;
-}
-
-.footer-sign-name {
-    font-weight: bold;
-}
-
-.qs-item-row {
-    page-break-inside: avoid;
-}
-
-.quote-section {
-    page-break-inside: avoid;
-}
-
 /* ========================================================= */
 /* CONDICIONES COMERCIALES                                   */
 /* ========================================================= */
@@ -348,6 +301,7 @@ body {
 .commercial-terms {
     margin-top: 4px;
     font-size: 9px;
+    page-break-inside: avoid;
 }
 
 .commercial-table {
@@ -356,7 +310,7 @@ body {
 }
 
 .commercial-table td {
-    padding: 0px 0;
+    padding: 0;
     vertical-align: top;
 }
 
@@ -370,22 +324,25 @@ body {
     width: 80%;
 }
 
+
 /* ========================================================= */
-/* FIRMA + LOGO HP (CLASES sig-*, ESTABLE EN WEASYPRINT)     */
+/* FIRMA + LOGO HP (FOOTER FIJO – WEASYPRINT)                 */
 /* ========================================================= */
 
 .sig-row {
-    margin-top: 18px;
+    position: fixed;
+    left: 0;
+    right: 0;
+    bottom: 0.6cm;
 }
 
-/* Línea 100% real */
+
 .sig-line {
     width: 100%;
-    border-top: 1px solid #ccc;
+    border-top: 1px solid #999;
     margin-bottom: 6px;
 }
 
-/* Dos columnas: firma / logo */
 .sig-content {
     display: table;
     width: 100%;
@@ -405,18 +362,16 @@ body {
     vertical-align: bottom;
 }
 
-/* Logo HP */
 .sig-hp-logo {
     width: 90px;
     height: auto;
 }
 
-/* Azul intenso para email/web (si lo quieres aquí también) */
+.sig-company {
+    font-weight: bold;
+}
+
 .sig-email,
 .sig-web {
     color: #0056b3;
-}
-
-.sig-company {
-    font-weight: bold;
 }

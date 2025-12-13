@@ -15,11 +15,11 @@ body {
 
 
 /* ========================================================= */
-/* ENCABEZADO BI + HP                                         */
+/* ENCABEZADO V2 (CERRADO)                                   */
 /* ========================================================= */
 
 .header {
-    margin-bottom: 16px;
+    margin-bottom: 14px;
 }
 
 .header-table {
@@ -28,41 +28,19 @@ body {
 }
 
 .header-table td {
-    vertical-align: middle;
+    vertical-align: top;
 }
 
-
-.header-logo-left {
-    width: 26%;   /* más ancho que la derecha por el logo rectangular */
+.header-left {
+    width: 68%;
+    padding-right: 10px;
 }
 
-.header-logo-right {
-    width: 18%;   /* menos ancho porque el logo HP es más compacto */
+.header-right {
+    width: 32%;
+    text-align: right;
+    padding-top: 2px;
 }
-
-.header-center {
-    width: 56%;
-    text-align: center;
-    vertical-align: middle;
-    padding-top: 6px;
-
-    position: relative;
-    left: -800px;
-}
-
-/* Logos */
-
-.logo-bi {
-    max-width: 175px;  /* Ajusta si lo quieres más grande */
-    height: auto;
-}
-
-.logo-hp {
-    max-width: 90px;   /* Ajusta según el PDF original */
-    height: auto;
-}
-
-/* Texto del encabezado */
 
 .company-name {
     font-weight: bold;
@@ -76,136 +54,269 @@ body {
 }
 
 .company-web {
-    color: #0056b3;   /* Azul estilo link */
+    color: #0056b3;
 }
 
 .company-distributor {
     font-weight: bold;
 }
 
-/* Tagline debajo del encabezado */
+.logo-bi {
+    max-width: 165px;
+}
 
 .header-tagline {
+    margin-top: 4px;
+    padding-top: 4px;
     text-align: center;
     font-size: 10px;
-    padding-top: 6px;
+    line-height: 1.2;
 }
 
 
 /* ========================================================= */
-/* BLOQUE CLIENTE + FECHA                                     */
+/* BLOQUE CLIENTE + FECHA (CERRADO)                          */
 /* ========================================================= */
 
-.client-block {
+.client-date-row {
+    display: table;
+    width: 100%;
     margin-top: 18px;
-    margin-bottom: 6px;
-    font-size: 11px;
+    margin-bottom: 10px;
+}
+
+.client-block {
+    display: table-cell;
+    width: 65%;
 }
 
 .right-date {
+    display: table-cell;
+    width: 35%;
     text-align: right;
-    margin-top: -28px;   /* Ajusta para mover el bloque de fecha */
-    font-size: 11px;
+    white-space: nowrap;
+    font-size: 10px;
 }
 
+.client-name {
+    font-weight: bold;
+    margin-bottom: 2px;
+}
+
+.client-contact {
+    font-size: 10px;
+    line-height: 1.3;
+}
 
 /* ========================================================= */
-/* TEXTO PRINCIPAL                                             */
+/* SALUDO / INTRO                                             */
 /* ========================================================= */
 
 .greeting {
-    margin-top: 18px;
-    margin-bottom: 14px;
-    font-size: 11px;
-}
-
-.section-title {
-    font-weight: bold;
-    margin-top: 6px;
-    margin-bottom: 6px;
-    font-size: 11px;
+    margin-top: 16px;
+    margin-bottom: 10px;
+    font-size: 10px;
 }
 
 
 /* ========================================================= */
-/* TABLAS                                                      */
+/* UTILIDADES                                                */
 /* ========================================================= */
 
-table {
+.text-center { text-align: center; }
+.text-right  { text-align: right; }
+
+
+/* ========================================================= */
+/* SECCIONES DE COTIZACIÓN                                   */
+/* ========================================================= */
+
+.quote-section {
+    padding: 0;                 /* CLAVE para edge-to-edge */
+    margin-top: 10px;
+    border-radius: 2px;
+}
+
+/* Colores base */
+.qs-blue  { background: #dbe7f3; }
+.qs-peach { background: #f7dcc7; }
+
+
+/* ========================================================= */
+/* TABLA DE PRODUCTOS (5 COLUMNAS)                           */
+/* ========================================================= */
+
+.qs-table {
     width: 100%;
     border-collapse: collapse;
-    margin-top: 5px;
-    margin-bottom: 5px;
+    border-spacing: 0;
+    table-layout: fixed;
 }
 
-/* Tabla principal de productos */
+/* Colgroup manda los anchos */
+.qs-table col:nth-child(1) { width: 10%; }
+.qs-table col:nth-child(2) { width: 55%; }
+.qs-table col:nth-child(3) { width: 10%; }
+.qs-table col:nth-child(4) { width: 14%; }
+.qs-table col:nth-child(5) { width: 11%; }
 
-.items-table th,
-.items-table td {
-    border: 0.6px solid #999;
-    padding: 4px 5px;
-}
-
-.items-table th {
-    background: #eee;
-    font-size: 10px;
-}
-
-.items-table td {
-    font-size: 10px;
+/* Sin bordes */
+.qs-table th,
+.qs-table td {
+    border: none !important;
+    background: transparent;
     vertical-align: top;
 }
 
-.text-right {
-    text-align: right;
+/* Padding base */
+.qs-table th,
+.qs-table td {
+    padding: 3px 5px;
 }
 
-.text-center {
-    text-align: center;
+/* Padding lateral tipo “bloque” */
+.qs-table thead th:first-child,
+.qs-table tbody td:first-child {
+    padding-left: 10px;
 }
 
-.item-short-description {
-    font-size: 9px;
+.qs-table thead th:last-child,
+.qs-table tbody td:last-child {
+    padding-right: 10px;
 }
 
 
 /* ========================================================= */
-/* TOTALES                                                     */
+/* THEAD – COLOR MÁS OSCURO (SIN LÍNEAS FANTASMA)            */
 /* ========================================================= */
 
-.totals-table {
-    width: 45%;
-    margin-left: auto;
-    margin-top: 6px;
+/* Pintar el fondo en el TR (no en los TH) */
+.qs-blue thead tr {
+    background: #b8cfe4;
 }
 
-.totals-table td {
-    border: none;
-    padding: 2px 0;
+.qs-peach thead tr {
+    background: #e8bfa0;
+}
+
+/* Los TH deben ser transparentes */
+.qs-blue thead th,
+.qs-peach thead th {
+    background: transparent !important;
+}
+
+/* Encabezado */
+.qs-head-row th {
+    font-weight: bold;
+    font-size: 9.5px;
+    padding-top: 6px;
+    padding-bottom: 6px;
+}
+
+/* Título de sección (colspan=2) */
+.qs-section-title {
+    font-size: 18px !important;
+    font-weight: bold;
+    text-align: left;
+}
+
+
+/* ========================================================= */
+/* CUERPO DE LA TABLA                                        */
+/* ========================================================= */
+
+.qs-sku {
+    font-weight: bold;
+    white-space: nowrap;
+    font-size: 10px;
+    line-height: 1.15;
+    
+}
+
+.qs-desc {
+    word-break: break-word;
+    overflow-wrap: anywhere;
     font-size: 10px;
 }
 
-.totals-label {
-    text-align: right;
+.qs-qty,
+.qs-unit,
+.qs-subtotal {
+    white-space: nowrap;
+    font-size: 10px;
 }
 
-.totals-value {
-    text-align: right;
-}
-
-.totals-label-strong {
+.qs-item-name {
     font-weight: bold;
-    font-size: 11px;
+    font-size: 10px;
+    line-height: 1.15;
 }
 
-.totals-value-strong {
-    font-weight: bold;
-    font-size: 11px;
+.qs-item-detail {
+    line-height: 1.15;
+    margin-top: 0;
+    font-size: 9px;
+    text-align: center;
+    color: #555;
+}
+
+.qs-item-row td {
+    padding-top: 0px;
+    padding-bottom: 0px;
+}
+
+.qs-item-row:last-of-type td {
+    padding-bottom: 6px;   /* pequeño espacio antes de subtotales */
 }
 
 
 /* ========================================================= */
-/* NOTAS / LEYENDAS AL PIE                                    */
+/* TOTALES POR SECCIÓN – AJUSTE FINO FINAL                   */
+/* ========================================================= */
+
+/* Espacio antes de iniciar totales */
+.qs-totals-spacer td {
+    padding-top: 1px;     /* ↓ antes era 3px (−2px) */
+    padding-bottom: 0;
+}
+
+/* Filas de totales más compactas */
+.qs-totals-row td {
+    padding-top: 0;       /* ↓ antes 1px (−1px) */
+    padding-bottom: 0;    /* ↓ antes 1px (−1px) */
+}
+
+/* Etiqueta (colspan=4) */
+.qs-tot-label {
+    text-align: right;
+    font-weight: bold;
+    font-size: 10px;
+    padding-right: 10px;
+}
+
+/* Monto (col 5) */
+.qs-tot-val {
+    text-align: right;
+    font-weight: bold;
+    font-size: 10px;
+    white-space: nowrap;
+    padding-right: 10px;
+}
+
+/* Espacio pequeño debajo del TOTAL */
+.qs-totals-grand td {
+    padding-bottom: 6px;  /* 👈 aire visual antes de la siguiente sección */
+}
+
+.qs-totals-grand .qs-tot-label,
+.qs-totals-grand .qs-tot-val {
+    font-size: 11px;
+}
+
+
+
+/* ========================================================= */
+/* NOTAS / FOOTER                                            */
 /* ========================================================= */
 
 .notes {
@@ -213,36 +324,99 @@ table {
     font-size: 9px;
 }
 
-.notes ul {
-    margin: 4px 0 0 14px;
-    padding: 0;
-}
-
-.notes li {
-    margin-bottom: 2px;
-}
-
-
-/* ========================================================= */
-/* BADGE DISTRIBUIDOR                                          */
-/* ========================================================= */
-
-.distributor-badge {
-    margin-top: 10px;
-    font-size: 9px;
-    font-weight: bold;
-}
-
-
-/* ========================================================= */
-/* FIRMA                                                       */
-/* ========================================================= */
-
 .footer-sign {
     margin-top: 16px;
     font-size: 10px;
 }
 
 .footer-sign-name {
+    font-weight: bold;
+}
+
+.qs-item-row {
+    page-break-inside: avoid;
+}
+
+.quote-section {
+    page-break-inside: avoid;
+}
+
+/* ========================================================= */
+/* CONDICIONES COMERCIALES                                   */
+/* ========================================================= */
+
+.commercial-terms {
+    margin-top: 4px;
+    font-size: 9px;
+}
+
+.commercial-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.commercial-table td {
+    padding: 0px 0;
+    vertical-align: top;
+}
+
+.ct-label {
+    width: 20%;
+    font-weight: bold;
+    padding-right: 2px;
+}
+
+.ct-value {
+    width: 80%;
+}
+
+/* ========================================================= */
+/* FIRMA + LOGO HP (CLASES sig-*, ESTABLE EN WEASYPRINT)     */
+/* ========================================================= */
+
+.sig-row {
+    margin-top: 18px;
+}
+
+/* Línea 100% real */
+.sig-line {
+    width: 100%;
+    border-top: 1px solid #ccc;
+    margin-bottom: 6px;
+}
+
+/* Dos columnas: firma / logo */
+.sig-content {
+    display: table;
+    width: 100%;
+}
+
+.sig-left {
+    display: table-cell;
+    width: 70%;
+    vertical-align: top;
+    font-size: 10px;
+}
+
+.sig-right {
+    display: table-cell;
+    width: 30%;
+    text-align: right;
+    vertical-align: bottom;
+}
+
+/* Logo HP */
+.sig-hp-logo {
+    width: 90px;
+    height: auto;
+}
+
+/* Azul intenso para email/web (si lo quieres aquí también) */
+.sig-email,
+.sig-web {
+    color: #0056b3;
+}
+
+.sig-company {
     font-weight: bold;
 }
