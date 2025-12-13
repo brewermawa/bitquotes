@@ -285,6 +285,14 @@ class Quote(models.Model):
     def total(self) -> Decimal:
         
         return self.get_subtotal - self.get_discount + self.get_tax
+    
+    @property
+    def max_delivery_time(self):
+        delivery_times = [
+            line.delivery_time for line in self.quote_lines.all() if line.delivery_time
+        ]
+
+        return max(delivery_times) if delivery_times else None
             
 
 class QuoteSection(models.Model):
@@ -303,18 +311,28 @@ class QuoteSection(models.Model):
     def __str__(self):
         return f"{self.quote} - {self.name}"
     
+    @property
     def get_subtotal(self) -> Decimal:
         lines = self.section_lines.all()
 
         return sum((line.net_total for line in lines), Decimal("0.00"))
 
+    @property
     def get_discount(self) -> Decimal:
         lines = self.section_lines.all()
         return sum((line.discount_value for line in lines), Decimal("0.00"))
     
     @property
     def net_subtotal(self) -> Decimal:
-        return self.get_subtotal() - self.get_discount()
+        return self.get_subtotal - self.get_discount
+    
+    @property
+    def tax(self) -> Decimal:
+        return (self.get_subtotal - self.get_discount) * Decimal("0.16")
+    
+    @property
+    def total(self) -> Decimal:
+        return (self.net_subtotal + self.tax)
     
 
 class QuoteLine(models.Model):
@@ -370,7 +388,7 @@ class QuoteLine(models.Model):
     @property
     def net_total(self) -> Decimal:
         return (self.gross_total - self.discount_value).quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
-
+    
 
 class QuoteComment(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.PROTECT, related_name="quote_comments", verbose_name="Usuario")
