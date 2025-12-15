@@ -60,6 +60,7 @@ class Product(models.Model):
     slug = models.SlugField(max_length=100, unique=True)
     description = models.TextField(blank=True, verbose_name="Descripción")
     price = models.DecimalField(max_digits=12, decimal_places=2, verbose_name="Precio")
+    price_editable = models.BooleanField(default=False, verbose_name="Precio editable")
     product_type = models.CharField(max_length=3, choices=ProductType.choices, default=ProductType.CONSUMIBLE, verbose_name="Tipo de producto")
     category = models.ForeignKey(Category, on_delete=models.PROTECT, related_name="products")
     related_product = models.ManyToManyField("self", symmetrical=False, through="RelatedProduct", related_name="related_products")

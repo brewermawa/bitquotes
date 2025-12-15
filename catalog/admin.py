@@ -47,10 +47,10 @@ class CategoryAdmin(admin.ModelAdmin):
 
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
-    list_display = ["sku", "name", "category", "price", "product_type", "is_active"]
+    list_display = ["sku", "name", "category", "price", "price_editable", "product_type", "is_active"]
     list_display_links = ["sku", "name"]
     list_filter  =["category", "product_type"]
-    list_editable = ["price", "is_active"]
+    list_editable = ["price", "price_editable", "is_active"]
     search_fields = ["sku", "name"]
     prepopulated_fields = {"slug": ("name",)}
     readonly_fields = ["created_by", "updated_by"]
