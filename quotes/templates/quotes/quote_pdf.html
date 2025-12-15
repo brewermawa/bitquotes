@@ -222,8 +222,7 @@
                 <div class="sig-company">Big Impression Tecnología</div>
 
                 <div class="sig-name">{{ quote.user.get_full_name }}</div>
-
-                <div class="sig-role">Asesor comercial</div>
+                <div class="sig-role">{{ quote.user.profile.position }}</div>
 
                 <div class="sig-contact">
                     Tel. {{ quote.user.profile.formatted_phone }} &nbsp;|&nbsp;
