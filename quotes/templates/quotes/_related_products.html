@@ -18,7 +18,8 @@
                         data-product-id="{{ rel.id }}"
                         data-part-number="{{ rel.sku }}"
                         data-product-name="{{ rel.name }}"
-                        data-unit-price="{{ rel.price }}">
+                        data-unit-price="{{ rel.price }}"
+                        data-price-editable="{% if product.price_editable %}true{% else %}false{% endif %}">
                     <span class="text-start">
                         {{ rel.sku }} - {{ rel.name }}
                     </span>

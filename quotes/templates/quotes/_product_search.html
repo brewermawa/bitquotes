@@ -6,6 +6,7 @@
                 data-part-number="{{ product.sku }}"
                 data-product-name="{{ product.name }}"
                 data-unit-price="{{ product.price|floatformat:2}}"
+                data-price-editable="{% if product.price_editable %}true{% else %}false{% endif %}"
                 data-has-related="{% if product.related_product.exists %}true{% else %}false{% endif %}">
             {{ product.sku}} - {{ product.name }}
         </button>

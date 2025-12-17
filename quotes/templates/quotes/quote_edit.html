@@ -145,9 +145,24 @@
                                            step="1"
                                            style="width: 60px; margin-left: auto;">
                                 </td>
-
-                                <td class="text-end js-unit-price" data-unit-price="{{ line.unit_price }}">
-                                    {{ line.unit_price }}
+                                <td class="text-end js-unit-price"
+                                    data-unit-price="{{ line.unit_price }}"
+                                    data-price-editable="{% if line.product.price_editable %}1{% else %}0{% endif %}">
+                                    {% if line.product.price_editable %}
+                                        <input type="number"
+                                               class="form-control form-control-sm text-end js-unit-price-input"
+                                               name="unit_price_line_{{ forloop.counter }}"
+                                               value="{{ line.unit_price }}"
+                                               min="0"
+                                               step="50"
+                                               style="width: 110px; margin-left: auto;">
+                                    {% else %}
+                                        {{ line.unit_price }}
+                                        {# Importante: enviar el precio actual aunque no sea editable #}
+                                        <input type="hidden"
+                                            name="unit_price_line_{{ forloop.counter }}"
+                                            value="{{ line.unit_price }}">
+                                    {% endif %}
                                 </td>
 
                                 <td class="text-end">
@@ -290,7 +305,9 @@
 
 {% block extra_js %}
 <script>
-  // Formatear en MXN
+  // ================================
+  // Formatter MXN
+  // ================================
   const mxnFormatter = new Intl.NumberFormat("es-MX", {
     style: "currency",
     currency: "MXN",
@@ -298,9 +315,12 @@
     maximumFractionDigits: 2,
   });
 
-  // Se rellenará al cargar el DOM con las <option> generadas por Django
+  // Se rellenará al cargar el DOM
   let discountOptionsHtml = "";
 
+  // ================================
+  // Recalcular subtotal por fila
+  // ================================
   function recalcRowSubtotal(row) {
     const qtyInput = row.querySelector(".js-qty-input");
     const unitPriceCell = row.querySelector(".js-unit-price");
@@ -310,58 +330,36 @@
     if (!qtyInput || !unitPriceCell || !discountSelect || !subtotalCell) return;
 
     const qty = parseFloat(qtyInput.value) || 0;
-    const unitPrice = parseFloat(unitPriceCell.dataset.unitPrice || "0") || 0;
+
+    let unitPrice = 0;
+    const unitPriceInput = row.querySelector(".js-unit-price-input");
+    if (unitPriceInput) {
+      unitPrice = parseFloat(unitPriceInput.value || "0") || 0;
+      unitPriceCell.dataset.unitPrice = unitPrice.toFixed(2);
+    } else {
+      unitPrice = parseFloat(unitPriceCell.dataset.unitPrice || "0") || 0;
+    }
+
     const discount = parseFloat(discountSelect.value || "0") || 0;
 
     let subtotal = qty * unitPrice;
     if (discount > 0) {
-      subtotal = subtotal * (1 - discount / 100);
+      subtotal *= (1 - discount / 100);
     }
 
     subtotalCell.textContent = mxnFormatter.format(subtotal);
-
-    // Actualizar totales generales
     recalcTotals();
   }
 
-  // Cuenta SOLO filas reales (las que tienen input de cantidad)
-  function getNextLineNumber() {
-    const tbody = document.getElementById("quote-lines-body");
-    if (!tbody) return 1;
-    const rows = tbody.querySelectorAll("tr");
-    let count = 0;
-    rows.forEach((row) => {
-      if (row.querySelector(".js-qty-input")) {
-        count += 1;
-      }
-    });
-    return count + 1;
-  }
-
-  // Renumera las líneas 1,2,3,… ignorando la fila del mensaje vacío
-  function renumberLines() {
-    const tbody = document.getElementById("quote-lines-body");
-    if (!tbody) return;
-
-    let lineNumber = 1;
-    tbody.querySelectorAll("tr").forEach((row) => {
-      if (row.querySelector(".js-qty-input")) {
-        const firstCell = row.querySelector("td");
-        if (firstCell) {
-          firstCell.textContent = lineNumber;
-          lineNumber += 1;
-        }
-      }
-    });
-  }
-
-  // Totales de la cotización (subtotal, descuento, IVA, total)
+  // ================================
+  // Recalcular totales
+  // ================================
   function recalcTotals() {
     const tbody = document.getElementById("quote-lines-body");
     if (!tbody) return;
 
-    let gross = 0;   // suma sin descuento
-    let net = 0;     // suma con descuento
+    let gross = 0;
+    let net = 0;
 
     tbody.querySelectorAll("tr").forEach((row) => {
       const qtyInput = row.querySelector(".js-qty-input");
@@ -371,13 +369,21 @@
       if (!qtyInput || !unitPriceCell || !discountSelect) return;
 
       const qty = parseFloat(qtyInput.value) || 0;
-      const unitPrice = parseFloat(unitPriceCell.dataset.unitPrice || "0") || 0;
+
+      let unitPrice = 0;
+      const unitPriceInput = row.querySelector(".js-unit-price-input");
+      if (unitPriceInput) {
+        unitPrice = parseFloat(unitPriceInput.value || "0") || 0;
+      } else {
+        unitPrice = parseFloat(unitPriceCell.dataset.unitPrice || "0") || 0;
+      }
+
       const discount = parseFloat(discountSelect.value || "0") || 0;
 
       const rowGross = qty * unitPrice;
       let rowNet = rowGross;
       if (discount > 0) {
-        rowNet = rowGross * (1 - discount / 100);
+        rowNet *= (1 - discount / 100);
       }
 
       gross += rowGross;
@@ -385,51 +391,61 @@
     });
 
     const discountAmount = gross - net;
-    const taxRate = 0.16;
-    const taxAmount = net * taxRate;
-    const total = net + taxAmount;
+    const tax = net * 0.16;
+    const total = net + tax;
 
-    const subtotalEl = document.getElementById("quote-subtotal");
-    const discountEl = document.getElementById("quote-discount");
-    const taxEl = document.getElementById("quote-tax");
-    const totalEl = document.getElementById("quote-total");
-
-    if (subtotalEl) subtotalEl.textContent = mxnFormatter.format(gross);
-    if (discountEl) discountEl.textContent = mxnFormatter.format(discountAmount);
-    if (taxEl) taxEl.textContent = mxnFormatter.format(taxAmount);
-    if (totalEl) totalEl.textContent = mxnFormatter.format(total);
+    document.getElementById("quote-subtotal").textContent = mxnFormatter.format(gross);
+    document.getElementById("quote-discount").textContent = mxnFormatter.format(discountAmount);
+    document.getElementById("quote-tax").textContent = mxnFormatter.format(tax);
+    document.getElementById("quote-total").textContent = mxnFormatter.format(total);
   }
 
-  // PREVENIR DUPLICADOS: si ya existe, incrementar cantidad
+  // ================================
+  // Numeración
+  // ================================
+  function getNextLineNumber() {
+    const tbody = document.getElementById("quote-lines-body");
+    let count = 0;
+    tbody.querySelectorAll("tr").forEach(row => {
+      if (row.querySelector(".js-qty-input")) count++;
+    });
+    return count + 1;
+  }
+
+  function renumberLines() {
+    const tbody = document.getElementById("quote-lines-body");
+    let n = 1;
+    tbody.querySelectorAll("tr").forEach(row => {
+      if (row.querySelector(".js-qty-input")) {
+        row.querySelector("td").textContent = n++;
+      }
+    });
+  }
+
+  // ================================
+  // Agregar producto como línea
+  // ================================
   function addProductAsLine(button) {
-    const productId = button.dataset.productId || "";
-    const partNumber = button.dataset.partNumber || "";
-    const productName = button.dataset.productName || "";
+    const productId = button.dataset.productId;
+    const partNumber = button.dataset.partNumber;
+    const productName = button.dataset.productName;
     const unitPrice = parseFloat(button.dataset.unitPrice || "0") || 0;
     const hasRelated = button.dataset.hasRelated === "true";
+    const priceEditable = button.dataset.priceEditable === "true";
 
     const tbody = document.getElementById("quote-lines-body");
     if (!tbody) return;
 
-    // Si ya existe una fila con este producto, solo incrementa cantidad
     const existingRow = tbody.querySelector(`tr[data-product-id="${productId}"]`);
     if (existingRow) {
       const qtyInput = existingRow.querySelector(".js-qty-input");
-      if (qtyInput) {
-        qtyInput.value = parseFloat(qtyInput.value || "0") + 1;
-        recalcRowSubtotal(existingRow);
-      }
-
-      // Resaltar visualmente la fila actualizada
+      qtyInput.value = parseInt(qtyInput.value || "0") + 1;
+      recalcRowSubtotal(existingRow);
       existingRow.classList.add("table-warning");
-      setTimeout(() => {
-        existingRow.classList.remove("table-warning");
-      }, 600);
-
+      setTimeout(() => existingRow.classList.remove("table-warning"), 600);
       return;
     }
 
-    // Si no existe, crear nueva fila
     const emptyRow = document.getElementById("empty-quote-row");
     if (emptyRow) emptyRow.remove();
 
@@ -440,263 +456,143 @@
     const relatedButtonHtml = hasRelated ? `
       <button type="button"
               class="btn btn-sm btn-link text-primary p-0 me-2 js-related-line"
-              title="Productos relacionados"
               data-product-id="${productId}">
         <i class="bi bi-layers"></i>
       </button>
     ` : "";
 
-    row.innerHTML = `
-        <input type="hidden" name="product_line_${lineNumber}" value="${productId}">
-        <td>${lineNumber}</td>
-        <td>${partNumber}</td>
-        <td>${productName}</td>
-
-        <td class="text-end">
-            <input type="number"
-                class="form-control form-control-sm text-end js-qty-input"
-                name="qty_line_${lineNumber}"
-                value="1"
-                min="1"
-                step="1"
-                style="width: 60px; margin-left: auto;">
-        </td>
-
+    const priceCellHtml = priceEditable
+      ? `
         <td class="text-end js-unit-price" data-unit-price="${unitPrice.toFixed(2)}">
-            ${mxnFormatter.format(unitPrice)}
+          <input type="number"
+                 class="form-control form-control-sm text-end js-unit-price-input"
+                 name="unit_price_line_${lineNumber}"
+                 value="${unitPrice.toFixed(2)}"
+                 min="0"
+                 step="50"
+                 style="width:110px;margin-left:auto;">
         </td>
+      `
+      : `
+        <td class="text-end js-unit-price" data-unit-price="${unitPrice.toFixed(2)}">
+          ${mxnFormatter.format(unitPrice)}
+          <input type="hidden"
+                 name="unit_price_line_${lineNumber}"
+                 value="${unitPrice.toFixed(2)}">
+        </td>
+      `;
 
-        <td class="text-end">
-            <select
-            class="form-select form-select-sm text-end js-discount-select"
-            name="discount_line_${lineNumber}"
-            style="width: 70px; margin-left: auto;">
-            ${discountOptionsHtml}
-            </select>
-        </td>
+    row.innerHTML = `
+      <input type="hidden" name="product_line_${lineNumber}" value="${productId}">
+      <td>${lineNumber}</td>
+      <td>${partNumber}</td>
+      <td>${productName}</td>
 
-        <td class="text-end">
-            <input type="number"
-                class="form-control form-control-sm text-end"
-                name="delivery_line_${lineNumber}"
-                value="0"
-                min="0"
-                step="1"
-                style="width: 60px; margin-left: auto;">
-        </td>
+      <td class="text-end">
+        <input type="number"
+               class="form-control form-control-sm text-end js-qty-input"
+               name="qty_line_${lineNumber}"
+               value="1"
+               min="1"
+               step="1"
+               style="width:60px;margin-left:auto;">
+      </td>
 
-        <td class="text-end js-subtotal">
-            ${mxnFormatter.format(unitPrice)}
-        </td>
+      ${priceCellHtml}
 
-        <td class="text-end" style="width: 60px;">
-            ${relatedButtonHtml}
-            <button type="button"
-                    class="btn btn-sm btn-link text-danger p-0 js-delete-line"
-                    title="Eliminar línea">
-            <i class="bi bi-trash"></i>
-            </button>
-        </td>
-      
+      <td class="text-end">
+        <select class="form-select form-select-sm text-end js-discount-select"
+                name="discount_line_${lineNumber}"
+                style="width:70px;margin-left:auto;">
+          ${discountOptionsHtml}
+        </select>
+      </td>
+
+      <td class="text-end">
+        <input type="number"
+               class="form-control form-control-sm text-end"
+               name="delivery_line_${lineNumber}"
+               value="0"
+               min="0"
+               step="1"
+               style="width:60px;margin-left:auto;">
+      </td>
+
+      <td class="text-end js-subtotal">
+        ${mxnFormatter.format(unitPrice)}
+      </td>
+
+      <td class="text-end">
+        ${relatedButtonHtml}
+        <button type="button"
+                class="btn btn-sm btn-link text-danger p-0 js-delete-line">
+          <i class="bi bi-trash"></i>
+        </button>
+      </td>
     `;
 
     tbody.appendChild(row);
     renumberLines();
-    recalcRowSubtotal(row);  // también recalcula totales
+    recalcRowSubtotal(row);
   }
 
+  // ================================
+  // DOM Ready
+  // ================================
   document.addEventListener("DOMContentLoaded", function () {
     const tbody = document.getElementById("quote-lines-body");
 
-    // Opciones de descuento desde el template
-    const discountOptionsTemplate = document.getElementById("discount-options-template");
-    if (discountOptionsTemplate) {
-      discountOptionsHtml = discountOptionsTemplate.innerHTML.trim();
+    const discountTemplate = document.getElementById("discount-options-template");
+    if (discountTemplate) {
+      discountOptionsHtml = discountTemplate.innerHTML.trim();
     }
 
     if (tbody) {
-      // Cantidad dinámica
-      tbody.addEventListener("input", function (event) {
-        if (event.target.classList.contains("js-qty-input")) {
-          const row = event.target.closest("tr");
-          if (row) recalcRowSubtotal(row);
+      tbody.addEventListener("input", function (e) {
+        if (
+          e.target.classList.contains("js-qty-input") ||
+          e.target.classList.contains("js-unit-price-input")
+        ) {
+          recalcRowSubtotal(e.target.closest("tr"));
         }
       });
 
-      // Descuento dinámico
-      tbody.addEventListener("change", function (event) {
-        if (event.target.classList.contains("js-discount-select")) {
-          const row = event.target.closest("tr");
-          if (row) recalcRowSubtotal(row);
+      tbody.addEventListener("change", function (e) {
+        if (e.target.classList.contains("js-discount-select")) {
+          recalcRowSubtotal(e.target.closest("tr"));
         }
       });
 
-      // Eliminar fila
-      tbody.addEventListener("click", function (event) {
-        const deleteBtn = event.target.closest(".js-delete-line");
-        if (deleteBtn) {
-          const row = deleteBtn.closest("tr");
-          if (row) {
-            row.remove();
-
-            const hasLines = tbody.querySelector(".js-qty-input");
-            if (!hasLines) {
-              tbody.innerHTML = `
-                <tr id="empty-quote-row">
-                  <td colspan="9" class="text-muted text-center py-3">
-                    Aún no hay productos en esta cotización.
-                  </td>
-                </tr>
-              `;
-            } else {
-              renumberLines();
-            }
-
-            recalcTotals();
+      tbody.addEventListener("click", function (e) {
+        const del = e.target.closest(".js-delete-line");
+        if (del) {
+          del.closest("tr").remove();
+          if (!tbody.querySelector(".js-qty-input")) {
+            tbody.innerHTML = `
+              <tr id="empty-quote-row">
+                <td colspan="9" class="text-center text-muted py-3">
+                  Aún no hay productos en esta cotización
+                </td>
+              </tr>`;
           }
+          renumberLines();
+          recalcTotals();
         }
       });
 
-      // Recalcular filas existentes al cargar
-      tbody.querySelectorAll("tr").forEach((row) => {
-        if (row.querySelector(".js-qty-input") && row.querySelector(".js-discount-select")) {
+      tbody.querySelectorAll("tr").forEach(row => {
+        if (row.querySelector(".js-qty-input")) {
           recalcRowSubtotal(row);
         }
       });
-
-      tbody.querySelectorAll(".js-unit-price").forEach(cell => {
-        const value = parseFloat(cell.dataset.unitPrice || "0");
-        cell.textContent = mxnFormatter.format(value);
-      });
-
-      renumberLines();
-      recalcTotals();
     }
 
-    // Delegación global: productos, relacionados, cerrar, agregar todos
-    document.addEventListener("click", function (event) {
-
-      // 1) Agregar producto desde buscador o relacionados
-      const productBtn = event.target.closest(".js-product-result");
+    document.addEventListener("click", function (e) {
+      const productBtn = e.target.closest(".js-product-result");
       if (productBtn) {
         addProductAsLine(productBtn);
-        return;
-      }
-
-      // 2) Botón de productos relacionados en la línea (TOGGLE con animación)
-      const relatedBtn = event.target.closest(".js-related-line");
-      if (relatedBtn) {
-        const productId = relatedBtn.dataset.productId;
-        if (!productId) return;
-
-        const currentRow = relatedBtn.closest("tr");
-        if (!currentRow) return;
-
-        // ¿Ya hay una fila de relacionados?
-        const existingRelatedRow = document.querySelector("tr.related-products-row");
-
-        if (existingRelatedRow) {
-          const isSameRow = existingRelatedRow.previousElementSibling === currentRow;
-
-          // Toggle: si es la misma fila, cerrar con animación
-          if (isSameRow) {
-            const inner = existingRelatedRow.querySelector("td > div");
-            if (inner) {
-              inner.classList.remove("fade-slide-in");
-              inner.classList.add("fade-slide-out");
-              setTimeout(() => existingRelatedRow.remove(), 180);
-            } else {
-              existingRelatedRow.remove();
-            }
-            return;
-          } else {
-            existingRelatedRow.remove();
-          }
-        }
-
-        // Abrir relacionados para este producto
-        const url = `/product/${productId}/related/`;
-
-        fetch(url, { headers: { "HX-Request": "true" } })
-          .then(res => res.text())
-          .then(html => {
-            if (!html) return;
-
-            const newRow = document.createElement("tr");
-            newRow.classList.add("related-products-row");
-
-            newRow.innerHTML = `
-              <td colspan="9">
-                <div class="fade-slide-in">
-                  ${html}
-                </div>
-              </td>
-            `;
-
-            const parent = currentRow.parentNode;
-            if (parent) {
-              parent.insertBefore(newRow, currentRow.nextSibling);
-            }
-          });
-
-        return;
-      }
-
-      // 3) Cerrar tarjeta de relacionados (X)
-      const closeRelatedBtn = event.target.closest(".js-close-related");
-      if (closeRelatedBtn) {
-        const relatedRow = closeRelatedBtn.closest("tr.related-products-row");
-
-        if (relatedRow) {
-          const inner = relatedRow.querySelector("td > div");
-          if (inner) {
-            inner.classList.remove("fade-slide-in");
-            inner.classList.add("fade-slide-out");
-            setTimeout(() => relatedRow.remove(), 180);
-          } else {
-            relatedRow.remove();
-          }
-        }
-        return;
-      }
-
-      // 4) Agregar TODOS los relacionados mostrados
-      const addAllRelatedBtn = event.target.closest(".js-add-all-related");
-      if (addAllRelatedBtn) {
-        const card = addAllRelatedBtn.closest(".card");
-        if (!card) return;
-
-        const buttons = card.querySelectorAll(".js-product-result");
-        buttons.forEach(b => addProductAsLine(b));
-
-        const relatedRow = card.closest("tr.related-products-row");
-        if (relatedRow) relatedRow.remove();
-
-        return;
       }
     });
-
-    // ============================================================
-    // Botón "X" para limpiar el buscador de productos
-    // ============================================================
-    const productSearchInput = document.getElementById("product-search");
-    const clearSearchBtn = document.getElementById("clear-product-search");
-    const productSearchResults = document.getElementById("product-search-results");
-
-    if (productSearchInput && clearSearchBtn && productSearchResults) {
-      // Mostrar/ocultar la X según haya texto
-      productSearchInput.addEventListener("input", function () {
-        clearSearchBtn.style.display = productSearchInput.value ? "block" : "none";
-      });
-
-      // Al hacer clic en la X, limpiar texto y resultados
-      clearSearchBtn.addEventListener("click", function () {
-        productSearchInput.value = "";
-        clearSearchBtn.style.display = "none";
-        productSearchResults.innerHTML = "";
-        productSearchInput.focus();
-      });
-    }
   });
 </script>
 

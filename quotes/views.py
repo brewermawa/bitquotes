@@ -1,3 +1,5 @@
+from decimal import Decimal, InvalidOperation
+
 from django.shortcuts import render, get_object_or_404, redirect
 from django.contrib.auth.decorators import login_required
 from django.views.generic import ListView, CreateView
@@ -113,11 +115,12 @@ def quote_edit(request, pk):
     quote_line_form = QuoteLineForm()
     user = request.user
 
+    # Reglas de edición por status (ajusta si cambias el workflow)
     if quote.status not in [
-            quote.Status.DRAFT,
-            quote.Status.APPROVED,
-            quote.Status.PENDING_APPROVAL
-        ]:
+        quote.Status.DRAFT,
+        quote.Status.APPROVED,
+        quote.Status.PENDING_APPROVAL,
+    ]:
         messages.warning(request, "No se puede editar una cotización en este status.")
         return redirect("quotes:quote_detail", pk=quote.pk)
 
@@ -127,7 +130,7 @@ def quote_edit(request, pk):
         if quote.user != user:
             messages.error(
                 request,
-                f"No tienes permisos para editar la cotización {pk}."
+                f"No tienes permisos para editar la cotización {pk}.",
             )
             return redirect("quotes:quote_list")
 
@@ -160,23 +163,51 @@ def quote_edit(request, pk):
             delivery_time = int(request.POST.get(f"delivery_line_{line}", 0) or 0)
 
             product = products_dict[product_id]
-            quote.add_product(product, quantity, discount, delivery_time)
+
+            # ---- NUEVO: unit_price editable (server-side) ----
+            raw_unit_price = (request.POST.get(f"unit_price_line_{line}") or "").strip()
+            try:
+                unit_price = Decimal(raw_unit_price) if raw_unit_price else None
+            except InvalidOperation:
+                unit_price = None
+
+            # Fallback seguro
+            if unit_price is None:
+                unit_price = product.price
+
+            # Enforce server-side: solo editable si el producto lo permite
+            if not product.price_editable:
+                unit_price = product.price
+            else:
+                if unit_price < 0:
+                    unit_price = Decimal("0.00")
+
+            # IMPORTANTE: tu Quote.add_product debe aceptar unit_price
+            quote.add_product(
+                product=product,
+                quantity=quantity,
+                discount=discount,
+                delivery_time=delivery_time,
+                unit_price=unit_price,
+            )
 
         # 5) Guardar términos de pago / condiciones de la cotización
         payment_terms_form = QuotePaymentTermsForm(request.POST, instance=quote)
-        payment_terms_form.is_valid()  # opcional, pero no estorba
-        payment_terms_form.save()
+        if payment_terms_form.is_valid():
+            payment_terms_form.save()
+        else:
+            # Si quieres, aquí puedes mostrar errores, pero no bloqueamos el guardado de líneas
+            pass
 
-        # 6) Invalidate approval si estaba APPROVED o PENDING_APPROVAL
+        # 6) Invalidate / reevaluate approval si estaba APPROVED o PENDING_APPROVAL
         quote.reevaluate_after_edit()
 
         messages.success(request, "La cotización se guardó correctamente.")
         return redirect("quotes:quote_detail", pk=quote.pk)
 
-    else:
-        # GET: cargar formulario con la info actual
-        payment_terms_form = QuotePaymentTermsForm(instance=quote)
-        quote_lines = QuoteLine.objects.filter(quote=quote)
+    # GET: cargar formulario con la info actual
+    payment_terms_form = QuotePaymentTermsForm(instance=quote)
+    quote_lines = QuoteLine.objects.filter(quote=quote)
 
     return render(request, "quotes/quote_edit.html", {
         "quote_line_form": quote_line_form,
@@ -185,7 +216,6 @@ def quote_edit(request, pk):
         "quote_lines": quote_lines,
         "discount_choices": discount_choices,
     })
-
 
 
 @login_required

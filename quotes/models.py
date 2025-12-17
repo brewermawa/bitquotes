@@ -167,17 +167,23 @@ class Quote(models.Model):
     def pending_approval(self):
         return self.status == self.Status.PENDING_APPROVAL
     
-    def add_product(self, product, quantity, discount, delivery_time):
-        QuoteLine.objects.create(
-                quote=self,
-                section=self.assign_section(product),
-                product=product,
-                description=product.name,
-                quantity=quantity,
-                unit_price=product.price,
-                discount=discount,
-                delivery_time=delivery_time
-            )
+    def add_product(self, product, quantity, discount, delivery_time, unit_price=None):
+        # Si no viene unit_price, usar precio de cat�logo
+        if unit_price is None:
+            unit_price = product.price
+
+        unit_price = Decimal(unit_price)
+
+        return QuoteLine.objects.create(
+            quote=self,
+            section=self.assign_section(product),
+            product=product,
+            description=product.name,
+            quantity=quantity,
+            unit_price=unit_price,
+            discount=discount,
+            delivery_time=delivery_time,
+        )
         
     def close_internal(self):
         current_status = self.status
