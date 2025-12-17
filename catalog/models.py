@@ -54,6 +54,7 @@ class Product(models.Model):
         SERVICIO = "SER", "Servicio"
         ACCESORIO = "ACC", "Accesorio"
         REFACCIONES = "REF", "Refacciones"
+        SOFTWARE = "SFT", "Software"
 
     sku = models.CharField(max_length=10, unique=True, verbose_name="Número de parte")
     name = models.CharField(max_length=100, verbose_name="Producto")

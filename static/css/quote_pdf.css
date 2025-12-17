@@ -142,9 +142,7 @@ body {
     page-break-inside: avoid;
 }
 
-/* Colores */
-.qs-blue  { background: #dbe7f3; }
-.qs-peach { background: #f7dcc7; }
+
 
 
 /* ========================================================= */
@@ -185,12 +183,24 @@ body {
 /* ========================================================= */
 /* THEAD                                                     */
 /* ========================================================= */
+/* Colores */
+.qs-blue   { background: #dbe7f3; }
+.qs-peach  { background: #f7dcc7; }
+.qs-green  { background: #e0f3d1; }
+.qs-gray   { background: #eeeeee; }
+.qs-indigo { background: #e3e7f4; }
 
-.qs-blue thead tr { background: #b8cfe4; }
-.qs-peach thead tr { background: #e8bfa0; }
+.qs-blue thead tr   { background: #b8cfe4; }
+.qs-peach thead tr  { background: #e8bfa0; }
+.qs-green thead tr  { background: #b8e2a2; }
+.qs-gray thead tr   { background: #d6d6d6; }
+.qs-indigo thead tr { background: #c5cdeb; }
 
 .qs-blue thead th,
-.qs-peach thead th {
+.qs-peach thead th,
+.qs-green thead th,
+.qs-gray thead th,
+.qs-indigo thead th {
     background: transparent !important;
 }
 

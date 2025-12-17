@@ -132,17 +132,29 @@
                             </td>
 
                             <td class="text-end">
-                                <div class="btn-group" role="group">
-                                    <a href="{% url 'quotes:quote_detail' q.id %}"
-                                       class="btn btn-sm btn-outline-primary">
-                                        <i class="bi bi-eye"></i> Ver
-                                    </a>
-                                    <a href="{% url 'quotes:quote_edit' q.id %}"
-                                       class="btn btn-sm btn-outline-secondary">
-                                        <i class="bi bi-pencil"></i> Editar
-                                    </a>
+                                <div class="d-flex justify-content-end">
+                                    {% if q.can_edit %}
+                                        <div class="btn-group" role="group" style="min-width: 120px;">
+                                            <a href="{% url 'quotes:quote_detail' q.id %}"
+                                            class="btn btn-sm btn-outline-primary w-50">
+                                                <i class="bi bi-eye"></i> Ver
+                                            </a>
+                                            <a href="{% url 'quotes:quote_edit' q.id %}"
+                                            class="btn btn-sm btn-outline-secondary w-50">
+                                                <i class="bi bi-pencil"></i> Editar
+                                            </a>
+                                        </div>
+                                    {% else %}
+                                        <a href="{% url 'quotes:quote_detail' q.id %}"
+                                        class="btn btn-sm btn-outline-primary"
+                                        style="min-width: 120px;">
+                                            <i class="bi bi-eye"></i> Ver
+                                        </a>
+                                    {% endif %}
                                 </div>
                             </td>
+
+
                         </tr>
                     {% endfor %}
                 </tbody>

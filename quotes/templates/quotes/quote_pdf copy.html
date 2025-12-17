@@ -21,7 +21,7 @@
                     <div class="company-info">
                         Vasconcelos 101 Local 1<br>
                         Bosques del Valle, San Pedro GG C.P. 66250<br>
-                        <span class="company-web">www.bi-tecnologia.com</span><br>
+                        <span class="company-web">http://www.bi-tecnologia.com</span><br>
                         <span class="company-distributor">DISTRIBUIDOR AUTORIZADO HP DESIGNJET</span>
                     </div>
                 </td>
@@ -68,7 +68,8 @@
     </p>
 
     {% for section in quote.quote_sections.all %}
-        <div class="quote-section {{ section.css_class }}">
+    {% cycle 'qs-blue' 'qs-peach' as section_theme silent %}
+        <div class="quote-section {{ section_theme }}">
             <table class="qs-table">
                 <colgroup>
                     <col style="width:10%">

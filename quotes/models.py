@@ -140,7 +140,7 @@ class Quote(models.Model):
         return self.status in {
             self.Status.DRAFT,
             self.Status.APPROVED,
-            self.Status.PENDING_APPROVAL,
+            self.Status.PENDING_APPROVAL, 
         }
 
     @property
@@ -339,6 +339,17 @@ class QuoteSection(models.Model):
     @property
     def total(self) -> Decimal:
         return (self.net_subtotal + self.tax)
+    
+    @property
+    def css_class(self) -> str:
+        return {
+            Product.ProductType.EQUIPO: "qs-blue",
+            Product.ProductType.CONSUMIBLE: "qs-peach",
+            Product.ProductType.SERVICIO: "qs-green",
+            Product.ProductType.ACCESORIO: "qs-gray",
+            Product.ProductType.REFACCIONES: "qs-gray",
+            Product.ProductType.SOFTWARE: "qs-indigo",
+        }.get(self.section_type, "qs-default")
     
 
 class QuoteLine(models.Model):
