@@ -101,24 +101,28 @@
     </div>
     
     <div class="mb-3">
-      <label class="form-label fw-semibold">Asignado a</label>
+        {% if user.profile.is_csr or user.profile.is_manager %}
+            <label class="form-label fw-semibold">Asignado a</label>
+            <select name="user" id="id_user"class="form-select"
+                    hx-get="{% url 'quotes:load_users_htmx' %}"
+                    hx-trigger="load"
+                    hx-target="#id_user"
+                    hx-swap="innerHTML"
+                    hx-params="none">
+                <option value="">Cargando usuarios…</option>
+            </select>
+        {% else %}
+            <label class="form-label fw-semibold">Asignado a {{ user }}</label>
+        {% endif %}
+        
 
-      <select name="user" id="id_user"class="form-select"
-              hx-get="{% url 'quotes:load_users_htmx' %}"
-              hx-trigger="load"
-              hx-target="#id_user"
-              hx-swap="innerHTML"
-              hx-params="none">
-          <option value="">Cargando usuarios…</option>
-      </select>
-
-      {% if form.user.errors %}
-          <div class="invalid-feedback d-block mt-1">
-              {% for error in form.user.errors %}
-                  {{ error }}
-              {% endfor %}
-          </div>
-      {% endif %}
+        {% if form.user.errors %}
+            <div class="invalid-feedback d-block mt-1">
+                {% for error in form.user.errors %}
+                    {{ error }}
+                {% endfor %}
+            </div>
+        {% endif %}
     </div>
 
 
