@@ -299,6 +299,12 @@ class Quote(models.Model):
         ]
 
         return max(delivery_times) if delivery_times else None
+    
+""" class QuotesOpenManager(models.Manager):
+    def get_queryset(self):
+        return super().get_queryset().filter(status__in=[
+            "DFT", "RVW", "APP", "SNT"
+        ]) """
             
 
 class QuoteSection(models.Model):

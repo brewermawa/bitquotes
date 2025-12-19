@@ -52,3 +52,148 @@ h3, .h3 { font-size: 1.25rem; }
     padding: 0.25rem 0.55rem;
     font-size: .78rem;
 }
+
+/* ==============================
+   DASHBOARD – Cards con color
+   (mantiene estilo compacto del base.css)
+   ============================== */
+
+.dash-card {
+  border-radius: 14px;
+  border: 1px solid rgba(0,0,0,0.08);
+  overflow: hidden;
+}
+
+/* Métrica muy visible */
+.dash-metric {
+  font-size: 2.6rem;
+  font-weight: 900;
+  line-height: 1.05;
+  margin-top: 0.25rem;
+  letter-spacing: -0.5px;
+}
+
+/* Icono discreto, consistente */
+.dash-icon {
+  width: 46px;
+  height: 46px;
+  border-radius: 14px;
+  display: grid;
+  place-items: center;
+  font-size: 1.35rem;
+  background: rgba(0,0,0,0.06);
+  color: rgba(0,0,0,0.55);
+}
+
+/* ---------- VARIANTES DE CARD ---------- */
+
+/* Abiertas – azul */
+.dash-card-open {
+  background: linear-gradient(135deg, #e9f6ff, #ffffff);
+}
+
+.dash-card-open .dash-metric {
+  color: #0b5ed7;
+}
+
+.dash-card-open .dash-icon {
+  background: rgba(13, 110, 253, 0.15);
+  color: #0b5ed7;
+}
+
+/* Ganadas – verde */
+.dash-card-won {
+  background: linear-gradient(135deg, #eaf8f1, #ffffff);
+}
+
+.dash-card-won .dash-metric {
+  color: #157347;
+}
+
+.dash-card-won .dash-icon {
+  background: rgba(25, 135, 84, 0.15);
+  color: #157347;
+}
+
+/* CTA – acento azul claro (tu color del navbar active/hover) */
+.dash-card-cta {
+  background: linear-gradient(135deg, #f0fbff, #ffffff);
+  border: 1px solid rgba(76, 194, 255, 0.45);
+}
+
+.dash-card-cta .dash-icon {
+  background: rgba(76, 194, 255, 0.20);
+  color: #0b5ed7;
+}
+
+/* ---------- Chips (desglose por estatus) ---------- */
+
+.dash-subline {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.35rem;
+}
+
+.dash-chip {
+  background: rgba(255,255,255,0.88);
+  color: #212529;
+  border: 1px solid rgba(0,0,0,0.12);
+  font-weight: 600;
+  padding: 0.28rem 0.5rem;
+  border-radius: 999px;
+}
+
+/* ---------- Tabla ---------- */
+
+.dash-table tbody tr:hover {
+  background-color: rgba(76, 194, 255, 0.08);
+}
+
+.dash-row {
+  cursor: pointer;
+}
+
+/* ---------- Badges de estatus ---------- */
+
+.dash-badge {
+  font-weight: 700;
+  border: 1px solid rgba(0,0,0,0.10);
+  padding: 0.32rem 0.55rem;
+  border-radius: 999px;
+}
+
+.dash-badge.dft { background: #f3f4f6; color: #111827; }
+.dash-badge.rvw { background: #fff7ed; color: #7c2d12; }
+.dash-badge.app { background: #eff6ff; color: #1e3a8a; }
+.dash-badge.snt { background: #f5f3ff; color: #4c1d95; }
+
+.dash-subtext {
+  font-size: 0.82rem;
+  color: rgba(0, 0, 0, 0.60);
+}
+
+/* KPIs compactos dentro del card de abiertas */
+
+.dash-kpis {
+  display: flex;
+  gap: 1rem;
+  margin-top: 0.25rem;
+}
+
+.dash-kpi {
+  display: flex;
+  align-items: baseline;
+  gap: 0.35rem;
+}
+
+.dash-kpi-label {
+  font-size: 0.78rem;
+  color: rgba(0, 0, 0, 0.60);
+}
+
+.dash-kpi-value {
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: #0b5ed7;
+}
+
