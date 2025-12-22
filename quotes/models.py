@@ -1,17 +1,41 @@
-from django.db import models
-from django.conf import settings
 from datetime import date
 from calendar import monthrange
+from decimal import Decimal, ROUND_HALF_UP
+
+from django.db import models
+from django.db.models import Q, Count
+from django.conf import settings
 from django.core.exceptions import ValidationError
 from django.core.validators import MinValueValidator
 from django.utils import timezone
-from decimal import Decimal, ROUND_HALF_UP
+
 
 from customers.models import Customer, Contact
 from catalog.models import Product
 
 
+class QuoteQuerySet(models.QuerySet):
+    def active(self):
+        return self.filter(is_active=True)
+    
+    def open(self):
+        return self.exclude(status__in=[Quote.Status.WON, Quote.Status.LOST, Quote.Status.EXPIRED])
+    
+
+class QuoteManager(models.Manager):
+    def get_queryset(self):
+        return QuoteQuerySet(self.model, using=self._db)
+    
+    def active(self):
+        return self.get_queryset().active()
+
+    def open(self):
+        return self.get_queryset().active().open()
+
+
 class Quote(models.Model):
+    objects = QuoteManager()
+
     class Status(models.TextChoices):
         DRAFT = "DFT", "Borrador"
         PENDING_APPROVAL = "RVW", "Aprobación pendiente"
@@ -299,12 +323,6 @@ class Quote(models.Model):
         ]
 
         return max(delivery_times) if delivery_times else None
-    
-""" class QuotesOpenManager(models.Manager):
-    def get_queryset(self):
-        return super().get_queryset().filter(status__in=[
-            "DFT", "RVW", "APP", "SNT"
-        ]) """
             
 
 class QuoteSection(models.Model):

@@ -60,8 +60,8 @@ h3, .h3 { font-size: 1.25rem; }
 
 .dash-card {
   border-radius: 14px;
-  border: 1px solid rgba(0,0,0,0.08);
-  overflow: hidden;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  overflow: hidden; /* si algún día metes dropdowns/menus dentro, y se cortan: cambiar a visible */
 }
 
 /* Métrica muy visible */
@@ -81,8 +81,8 @@ h3, .h3 { font-size: 1.25rem; }
   display: grid;
   place-items: center;
   font-size: 1.35rem;
-  background: rgba(0,0,0,0.06);
-  color: rgba(0,0,0,0.55);
+  background: rgba(0, 0, 0, 0.06);
+  color: rgba(0, 0, 0, 0.55);
 }
 
 /* ---------- VARIANTES DE CARD ---------- */
@@ -126,38 +126,24 @@ h3, .h3 { font-size: 1.25rem; }
   color: #0b5ed7;
 }
 
-/* ---------- Chips (desglose por estatus) ---------- */
-
-.dash-subline {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.35rem;
-}
-
-.dash-chip {
-  background: rgba(255,255,255,0.88);
-  color: #212529;
-  border: 1px solid rgba(0,0,0,0.12);
-  font-weight: 600;
-  padding: 0.28rem 0.5rem;
-  border-radius: 999px;
-}
-
 /* ---------- Tabla ---------- */
 
 .dash-table tbody tr:hover {
   background-color: rgba(76, 194, 255, 0.08);
 }
 
+/* IMPORTANTE:
+   - Solo deja cursor:pointer si de verdad haces el <tr> clickeable (navega al detalle).
+   - Si NO es clickeable, usa cursor: default; para no “mentir” al usuario. */
 .dash-row {
-  cursor: pointer;
+  cursor: default;
 }
 
 /* ---------- Badges de estatus ---------- */
 
 .dash-badge {
   font-weight: 700;
-  border: 1px solid rgba(0,0,0,0.10);
+  border: 1px solid rgba(0, 0, 0, 0.10);
   padding: 0.32rem 0.55rem;
   border-radius: 999px;
 }
@@ -172,10 +158,11 @@ h3, .h3 { font-size: 1.25rem; }
   color: rgba(0, 0, 0, 0.60);
 }
 
-/* KPIs compactos dentro del card de abiertas */
+/* ---------- KPIs compactos dentro del card de abiertas ---------- */
 
 .dash-kpis {
   display: flex;
+  flex-wrap: wrap;         /* responsive: permite saltar de línea */
   gap: 1rem;
   margin-top: 0.25rem;
 }
@@ -191,9 +178,21 @@ h3, .h3 { font-size: 1.25rem; }
   color: rgba(0, 0, 0, 0.60);
 }
 
+/* Por default hereda el color; el tema lo define la card */
 .dash-kpi-value {
   font-size: 0.95rem;
   font-weight: 700;
-  color: #0b5ed7;
+  color: inherit;
 }
 
+/* Tema por card (escalable) */
+.dash-card-open .dash-kpi-value { color: #0b5ed7; }
+.dash-card-won  .dash-kpi-value { color: #157347; }
+.dash-card-cta  .dash-kpi-value { color: #0b5ed7; }
+
+/* Ajuste fino en pantallas pequeñas */
+@media (max-width: 575.98px) {
+  .dash-kpis {
+    gap: 0.6rem;
+  }
+}

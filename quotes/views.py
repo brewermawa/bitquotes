@@ -20,7 +20,19 @@ from customers.models import Customer
 
 @login_required
 def dashboard(request):
-    return render(request, "quotes/dashboard.html")
+    qs = Quote.objects.open()
+
+    if request.user.profile.role != "M":
+        qs = qs.filter(user=request.user)
+
+    ctx = {
+        "open": qs.count(),
+        "pending_approval": qs.filter(status=Quote.Status.PENDING_APPROVAL).count(),
+        "sent": qs.filter(status=Quote.Status.DRAFT).count(),
+    }
+
+
+    return render(request, "quotes/dashboard.html", ctx)
 
 
 class QuoteListView(LoginRequiredMixin, ListView):

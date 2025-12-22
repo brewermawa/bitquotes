@@ -43,7 +43,7 @@
                     <div class="d-flex justify-content-between align-items-start">
                         <div>
                             <div class="text-muted small">Cotizaciones abiertas</div>
-                            <div class="dash-metric">14</div>
+                            <div class="dash-metric">{{ open }}</div>
                         </div>
                         <div class="dash-icon">
                             <i class="bi bi-inbox"></i>
@@ -53,12 +53,12 @@
                     <!-- Indicadores accionables -->
                     <div class="dash-kpis mt-2">
                         <div class="dash-kpi">
-                            <span class="dash-kpi-label">Pendientes de revisión</span>
-                            <span class="dash-kpi-value">2</span>
+                            <span class="dash-kpi-label">Pendientes de aprobación</span>
+                            <span class="dash-kpi-value">{{ pending_approval }}</span>
                         </div>
                         <div class="dash-kpi">
                             <span class="dash-kpi-label">Enviadas a cliente</span>
-                            <span class="dash-kpi-value">4</span>
+                            <span class="dash-kpi-value">{{ sent }}</span>
                         </div>
                     </div>
                 </div>
