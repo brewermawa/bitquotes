@@ -10,6 +10,7 @@ from django.db.models import Q
 from django.contrib import messages
 from django.template.loader import get_template
 from django.utils import timezone
+from django.core.paginator import Paginator
 
 from weasyprint import HTML
 
@@ -23,27 +24,43 @@ from customers.models import Customer
 
 @login_required
 def dashboard(request):
-    open = Quote.objects.open()
-    won = Quote.objects.won()
+    is_manager = request.user.profile.role == "M"
+    scope = request.GET.get("scope", "mine")
+    if not is_manager:
+        scope = "mine"
 
-    if request.user.profile.role != "M":
-        open = open.filter(user=request.user)
-        won = won.filter(user=request.user)
+    open_qs = Quote.objects.open()
+    won_qs = Quote.objects.won()
+
+    if scope == "mine":
+        open_qs = open_qs.filter(user=request.user)
+        won_qs = won_qs.filter(user=request.user)
 
     now = timezone.now()
-    won = won.filter(won_at__year=now.year, won_at__month=now.month)
+    won_qs = won_qs.filter(won_at__year=now.year, won_at__month=now.month)
 
-    won_total = sum(q.total for q in won)
+    # Tabla paginada: 10 por página
+    paginator = Paginator(open_qs, 10)
+    page_number = request.GET.get("page", 1)
+    open_quotes_page = paginator.get_page(page_number)
 
     ctx = {
-        "open_quotes": open,
-        "open_count": open.count(),
-        "pending_approval": open.filter(status=Quote.Status.PENDING_APPROVAL).count(),
-        "sent": open.filter(status=Quote.Status.SENT).count(),
-        "won_total": won_total,
-        "won_count": won.count()
-    }
+        "is_manager": is_manager,
+        "scope": scope,
 
+        # Cards (sobre queryset completo)
+        "open_count": open_qs.count(),
+        "pending_approval": open_qs.filter(status=Quote.Status.PENDING_APPROVAL).count(),
+        "sent": open_qs.filter(status=Quote.Status.SENT).count(),
+
+        "won_total": sum(q.total for q in won_qs),
+        "won_count": won_qs.count(),
+
+        # Tabla
+        "open_quotes": open_quotes_page,
+
+        "current_month": now,
+    }
     return render(request, "quotes/dashboard.html", ctx)
 
 
