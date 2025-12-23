@@ -331,6 +331,18 @@ class Quote(models.Model):
         ]
 
         return max(delivery_times) if delivery_times else None
+    
+    @property
+    def status_css(self) -> str:
+        return {
+            self.Status.DRAFT: "dft",
+            self.Status.PENDING_APPROVAL: "rvw",
+            self.Status.APPROVED: "app",
+            self.Status.SENT: "snt",
+            self.Status.WON: "won",
+            self.Status.LOST: "lst",
+            self.Status.EXPIRED: "exp",
+        }.get(self.status, "secondary")
             
 
 class QuoteSection(models.Model):
@@ -382,6 +394,8 @@ class QuoteSection(models.Model):
             Product.ProductType.REFACCIONES: "qs-gray",
             Product.ProductType.SOFTWARE: "qs-indigo",
         }.get(self.section_type, "qs-default")
+    
+
     
 
 class QuoteLine(models.Model):

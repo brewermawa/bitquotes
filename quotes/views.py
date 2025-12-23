@@ -36,7 +36,8 @@ def dashboard(request):
     won_total = sum(q.total for q in won)
 
     ctx = {
-        "open": open.count(),
+        "open_quotes": open,
+        "open_count": open.count(),
         "pending_approval": open.filter(status=Quote.Status.PENDING_APPROVAL).count(),
         "sent": open.filter(status=Quote.Status.SENT).count(),
         "won_total": won_total,

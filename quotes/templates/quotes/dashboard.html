@@ -49,7 +49,7 @@
                     <div class="d-flex justify-content-between align-items-start">
                         <div>
                             <div class="text-muted small">Cotizaciones abiertas</div>
-                            <div class="dash-metric">{{ open }}</div>
+                            <div class="dash-metric">{{ open_count }}</div>
                         </div>
                         <div class="dash-icon">
                             <i class="bi bi-inbox"></i>
@@ -142,65 +142,27 @@
                 </thead>
 
                 <tbody>
-                    <tr class="dash-row">
-                        <td class="fw-semibold">Q-000245</td>
-                        <td>Constructora Norte S.A. de C.V.</td>
-                        <td>
-                            <span class="badge dash-badge dft">Borrador</span>
-                        </td>
-                        <td class="text-end">$18,450.00</td>
-                        <td class="text-muted small">Dec 18, 2025 9:12 AM</td>
-                        <td class="text-end">
-                            <a class="btn btn-sm btn-outline-secondary" href="#" title="Ver detalle">
-                                <i class="bi bi-chevron-right"></i>
-                            </a>
-                        </td>
-                    </tr>
-
-                    <tr class="dash-row">
-                        <td class="fw-semibold">Q-000246</td>
-                        <td>Arq. Sofía Treviño</td>
-                        <td>
-                            <span class="badge dash-badge rvw">Aprobación pendiente</span>
-                        </td>
-                        <td class="text-end">$52,980.00</td>
-                        <td class="text-muted small">Dec 17, 2025 6:40 PM</td>
-                        <td class="text-end">
-                            <a class="btn btn-sm btn-outline-secondary" href="#" title="Ver detalle">
-                                <i class="bi bi-chevron-right"></i>
-                            </a>
-                        </td>
-                    </tr>
-
-                    <tr class="dash-row">
-                        <td class="fw-semibold">Q-000247</td>
-                        <td>Grupo Diseño Industrial</td>
-                        <td>
-                            <span class="badge dash-badge app">Aprobada</span>
-                        </td>
-                        <td class="text-end">$101,200.00</td>
-                        <td class="text-muted small">Dec 16, 2025 11:05 AM</td>
-                        <td class="text-end">
-                            <a class="btn btn-sm btn-outline-secondary" href="#" title="Ver detalle">
-                                <i class="bi bi-chevron-right"></i>
-                            </a>
-                        </td>
-                    </tr>
-
-                    <tr class="dash-row">
-                        <td class="fw-semibold">Q-000248</td>
-                        <td>Inmobiliaria Bosques</td>
-                        <td>
-                            <span class="badge dash-badge snt">Enviada</span>
-                        </td>
-                        <td class="text-end">$76,300.00</td>
-                        <td class="text-muted small">Dec 15, 2025 2:22 PM</td>
-                        <td class="text-end">
-                            <a class="btn btn-sm btn-outline-secondary" href="#" title="Ver detalle">
-                                <i class="bi bi-chevron-right"></i>
-                            </a>
-                        </td>
-                    </tr>
+                    {% for quote in open_quotes %}
+                        <tr class="dash-row">
+                            <td class="fw-semibold">{{ quote.quote_id }}</td>
+                            <td>{{ quote.customer }}</td>
+                            <td><span class="badge dash-badge {{ quote.status_css }}">{{ quote.get_status_display }}</span></td>
+                            <td class="text-end">${{ quote.total|floatformat:2|intcomma }}</td>
+                            <td class="text-muted small">{{ quote.updated|date:"j F Y" }}</td>
+                            <td class="text-end">
+                                <a class="btn btn-sm btn-outline-secondary" href="{% url 'quotes:quote_detail' quote.id %}" title="Ver detalle">
+                                    <i class="bi bi-chevron-right"></i>
+                                </a>
+                            </td>
+                        </tr>
+                    {% empty %}
+                        <tr>
+                            <td colspan="6" class="text-center text-muted py-4">
+                                No hay cotizaciones abiertas
+                            </td>
+                        </tr>
+                    {% endfor %}
+                    {% endfor %}
                 </tbody>
             </table>
         </div>

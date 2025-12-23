@@ -158,7 +158,6 @@ def customer_row_update(request, pk):
     # Persistir cambios
     customer.name = name
     customer.rfc = rfc
-    print("---" + assigned_to)
     customer.assigned_to = CustomUser.objects.get(pk=assigned_to)
 
     # Opcional: si llevas auditoría

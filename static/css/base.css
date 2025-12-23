@@ -139,19 +139,60 @@ h3, .h3 { font-size: 1.25rem; }
   cursor: default;
 }
 
-/* ---------- Badges de estatus ---------- */
+/* Badges de estatus – Dashboard */
 
 .dash-badge {
   font-weight: 700;
-  border: 1px solid rgba(0, 0, 0, 0.10);
+  border: 1px solid rgba(0,0,0,0.10);
   padding: 0.32rem 0.55rem;
   border-radius: 999px;
+  font-size: 0.75rem;
 }
 
-.dash-badge.dft { background: #f3f4f6; color: #111827; }
-.dash-badge.rvw { background: #fff7ed; color: #7c2d12; }
-.dash-badge.app { background: #eff6ff; color: #1e3a8a; }
-.dash-badge.snt { background: #f5f3ff; color: #4c1d95; }
+/* Borrador */
+.dash-badge.dft {
+  background: #f3f4f6;
+  color: #111827;
+}
+
+/* Pendiente de aprobación */
+.dash-badge.rvw {
+  background: #fff7ed;
+  color: #7c2d12;
+}
+
+/* Aprobada */
+.dash-badge.app {
+  background: #eff6ff;
+  color: #1e3a8a;
+}
+
+/* Enviada */
+.dash-badge.snt {
+  background: #f5f3ff;
+  color: #4c1d95;
+}
+
+/* (Opcional – por si aparecen en otros listados) */
+
+/* Ganada */
+.dash-badge.won {
+  background: #ecfdf5;
+  color: #065f46;
+}
+
+/* Perdida */
+.dash-badge.lst {
+  background: #fef2f2;
+  color: #7f1d1d;
+}
+
+/* Expirada */
+.dash-badge.exp {
+  background: #f9fafb;
+  color: #374151;
+}
+
 
 .dash-subtext {
   font-size: 0.82rem;
