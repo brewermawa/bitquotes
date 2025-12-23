@@ -32,7 +32,13 @@
 {% endblock content_header %}
 
 {% block content %}
-
+    {% for q in qs %}
+        {{ forloop.counter }} - {{ q }} - {{ q.user }} - {{ q.status }}<br>
+    {% endfor %}
+    <br>
+    {% for q in won %}
+        {{ forloop.counter }} - {{ q }} - {{ q.user }} - {{ q.status }}<br>
+    {% endfor %}
     <!-- CARDS (3) -->
     <div class="row g-3 mb-3">
 
@@ -72,7 +78,8 @@
                     <div class="d-flex justify-content-between align-items-start">
                         <div>
                             <div class="text-muted small">Ganadas del mes</div>
-                            <div class="dash-metric">$248,930.00</div>
+                            <div class="dash-metric">${{ won_total|floatformat:2|intcomma }}</div>
+                            <div class="dash-subtext mt-1">Cotizaciones ganadas: {{ won_count }}</div>
                         </div>
                         <div class="dash-icon">
                             <i class="bi bi-trophy"></i>
@@ -87,13 +94,13 @@
             <div class="card dash-card dash-card-cta shadow-sm h-100">
                 <div class="card-body d-flex flex-column justify-content-between">
                     <div>
-                        <div class="text-muted small">Acción rápida</div>
-                        <div class="h5 mb-1">Nueva cotización</div>
-                        <div class="text-muted small">Crea una cotización en segundos.</div>
+                        <div class="h4 fw-bold text-primary mb-1">
+                            Nueva cotización
+                        </div>
                     </div>
 
                     <div class="mt-3">
-                        <a href="#" class="btn btn-primary w-100">
+                        <a href="{% url 'quotes:quote_create' %}" class="btn btn-primary w-100">
                             <i class="bi bi-plus-circle me-1"></i>
                             Crear cotización
                         </a>
@@ -101,7 +108,6 @@
                 </div>
             </div>
         </div>
-
     </div>
 
     <!-- LISTADO: Abiertas -->

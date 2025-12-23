@@ -17,20 +17,28 @@ from catalog.models import Product
 class QuoteQuerySet(models.QuerySet):
     def active(self):
         return self.filter(is_active=True)
-    
+
     def open(self):
-        return self.exclude(status__in=[Quote.Status.WON, Quote.Status.LOST, Quote.Status.EXPIRED])
+        M = self.model
+        return self.exclude(status__in=[M.Status.WON, M.Status.LOST, M.Status.EXPIRED])
+
+    def won(self):
+        M = self.model
+        return self.filter(status=M.Status.WON)
     
 
 class QuoteManager(models.Manager):
     def get_queryset(self):
         return QuoteQuerySet(self.model, using=self._db)
-    
+
     def active(self):
         return self.get_queryset().active()
 
     def open(self):
         return self.get_queryset().active().open()
+
+    def won(self):
+        return self.get_queryset().active().won()
 
 
 class Quote(models.Model):

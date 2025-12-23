@@ -9,6 +9,8 @@ from django.http import HttpResponse
 from django.db.models import Q
 from django.contrib import messages
 from django.template.loader import get_template
+from django.utils import timezone
+
 from weasyprint import HTML
 
 from .models import Quote, QuoteLine, QuoteSection, QuoteComment
@@ -18,19 +20,28 @@ from customers.models import Contact
 from catalog.models import Product
 from customers.models import Customer
 
+
 @login_required
 def dashboard(request):
-    qs = Quote.objects.open()
+    open = Quote.objects.open()
+    won = Quote.objects.won()
 
     if request.user.profile.role != "M":
-        qs = qs.filter(user=request.user)
+        open = open.filter(user=request.user)
+        won = won.filter(user=request.user)
+
+    now = timezone.now()
+    won = won.filter(won_at__year=now.year, won_at__month=now.month)
+
+    won_total = sum(q.total for q in won)
 
     ctx = {
-        "open": qs.count(),
-        "pending_approval": qs.filter(status=Quote.Status.PENDING_APPROVAL).count(),
-        "sent": qs.filter(status=Quote.Status.DRAFT).count(),
+        "open": open.count(),
+        "pending_approval": open.filter(status=Quote.Status.PENDING_APPROVAL).count(),
+        "sent": open.filter(status=Quote.Status.SENT).count(),
+        "won_total": won_total,
+        "won_count": won.count()
     }
-
 
     return render(request, "quotes/dashboard.html", ctx)
 
