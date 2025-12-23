@@ -22,13 +22,6 @@
 {% endblock content_header %}
 
 {% block content %}
-    {% for q in qs %}
-        {{ forloop.counter }} - {{ q }} - {{ q.user }} - {{ q.status }}<br>
-    {% endfor %}
-    <br>
-    {% for q in won %}
-        {{ forloop.counter }} - {{ q }} - {{ q.user }} - {{ q.status }}<br>
-    {% endfor %}
     <!-- CARDS (3) -->
     <div class="row g-3 mb-3">
 
